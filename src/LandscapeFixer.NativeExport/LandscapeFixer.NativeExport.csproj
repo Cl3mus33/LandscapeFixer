@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\LandscapeFixer.Core\LandscapeFixer.Core.csproj" />
+    <ProjectReference Include="..\LandscapeCommon\LandscapeCommon.csproj" />
   </ItemGroup>
 
   <ItemGroup>
