@@ -5,7 +5,6 @@
     "cancel": "Cancelar"
   },
   "launcher": {
-    "intro": "Vasculha a pasta Data do Skyrim SE vanilla em busca de todo registro cujo EditorID ou caminho de malha mencione \"snow\", duplica a malha vencedora para cada um, e grava um plugin apontando para as duplicatas - que assim permanecem livremente editáveis sem tocar em nenhum arquivo original.",
     "configProfile": {
       "label": "Perfil de configuração",
       "load": "Carregar configuração...",
@@ -57,13 +56,9 @@
       "snowOnly": "Aplicar nas meshes de neve geradas"
     },
     "meshBlacklist": {
-      "label": "Lista negra de meshes",
-      "help": "Meshes que corresponderem a uma regra aqui nunca são duplicadas nem corrigidas. Curingas (*) permitidos, ex. \"*\\trees\\*\". Clique com o botão direito para adicionar/remover linhas.",
       "column": "Regra"
     },
     "editorIdKeywords": {
-      "label": "Palavras-chave de EditorID na lista negra",
-      "help": "Registros cujo EditorID contenha uma dessas palavras (sem diferenciar maiúsculas/minúsculas) são ignorados por completo - útil para excluir falsos positivos. Clique com o botão direito para adicionar/remover linhas.",
       "column": "Palavra-chave"
     },
     "hideDecalShapes": {

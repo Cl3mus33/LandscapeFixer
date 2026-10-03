@@ -53,6 +53,15 @@ private:
     PGModifiableListCtrl* m_editorIdKeywordsCtrl = nullptr;
     wxCheckBox* m_hideDecalShapesCheckbox = nullptr;
     wxCheckBox* m_removeIceSnowMaterialCheckbox = nullptr;
+    wxCheckBox* m_enableBlendCheckbox = nullptr;
+    wxCheckBox* m_enableSnowCheckbox = nullptr;
+    wxCheckBox* m_restrictToLandscapeCheckbox = nullptr;
+    PGModifiableListCtrl* m_meshAddListCtrl = nullptr;
+    PGModifiableListCtrl* m_blendMeshBlacklistCtrl = nullptr;
+    PGModifiableListCtrl* m_blendEditorIdKeywordsCtrl = nullptr;
+    PGModifiableListCtrl* m_autoGenerateAllowlistCtrl = nullptr;
+    wxDialog* m_autoGenerateAllowlistDialog = nullptr;
+    wxCheckBox* m_generatePbrSlotsCheckbox = nullptr;
     wxButton* m_okButton = nullptr;
 
     void onLanguageChanged(wxCommandEvent&);
@@ -63,6 +72,9 @@ private:
     void onBrowseGameLocation(wxCommandEvent&);
     void onBrowseOutputLocation(wxCommandEvent&);
     void onModManagerChanged(wxCommandEvent&);
+    void onGameTypeChanged(wxCommandEvent&);
+    void updateGameTypeFieldState();
+    void onEditAllowlistButtonPressed(wxCommandEvent&);
     void onBrowseMo2Instance(wxCommandEvent&);
     void onMo2InstancePathChanged(wxCommandEvent&);
     void refreshMo2Profiles();

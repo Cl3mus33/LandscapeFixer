@@ -5,7 +5,7 @@
     "cancel": "Cancel"
   },
   "launcher": {
-    "intro": "Scans the vanilla Skyrim SE Data folder for every record whose EditorID or mesh path mentions snow, duplicates the winning mesh for each one, and writes a plugin pointing at the duplicates - so they stay freely editable without touching any original asset.",
+    "intro": "Fixes the landscape meshes of your load order: alpha test becomes alpha blend with derived \"blend\" TextureSets (Blend), and every snow record gets its own mesh copy with the snow fixes applied (Snow). Only meshes inside a landscape folder are touched, everything is written to one plugin, and PG Patcher is left to do the PBR conversion afterwards.",
     "configProfile": {
       "label": "Config Profile",
       "load": "Load Config...",
@@ -57,13 +57,13 @@
       "snowOnly": "Apply on the generated snow meshes"
     },
     "meshBlacklist": {
-      "label": "Mesh Blacklist",
-      "help": "Meshes matching a rule here are never duplicated or patched. Wildcards (*) allowed, e.g. \"*\\trees\\*\". Right click to add/remove rows.",
+      "label": "Snow Mesh Blacklist",
+      "help": "Meshes matching a rule here are never copied by the snow pass. Wildcards (*) allowed, e.g. \"*\\trees\\*\". Right click to add/remove rows.",
       "column": "Rule"
     },
     "editorIdKeywords": {
-      "label": "EditorID Blacklist Keywords",
-      "help": "Records whose EditorID contains one of these words (case-insensitive) are skipped entirely - useful for excluding false-positive matches. Right click to add/remove rows.",
+      "label": "Snow EditorID Blacklist Keywords",
+      "help": "Records whose EditorID contains one of these words (case-insensitive) are skipped by the snow pass - useful for excluding false-positive matches. Right click to add/remove rows.",
       "column": "Keyword"
     },
     "hideDecalShapes": {
@@ -78,7 +78,8 @@
     },
     "tab": {
       "general": "General",
-      "options": "Options"
+      "options": "Options",
+      "blend": "Blend"
     },
     "language": {
       "label": "Language"
@@ -105,6 +106,41 @@
     "missingMo2Profile": {
       "message": "No MO2 profile is selected. Make sure the MO2 Instance Path points to your MO2 instance (the folder containing ModOrganizer.ini, or the folder that holds your mods and profiles), then pick a profile.",
       "title": "Missing MO2 Profile"
+    },
+    "passes": {
+      "label": "Passes",
+      "blend": "Blend: alpha test to alpha blend on landscape meshes, with derived \"blend\" TextureSets",
+      "snow": "Snow: a mesh copy and a plugin override for every snow record"
+    },
+    "scope": {
+      "label": "Landscape Scope",
+      "restrict": "Only process meshes inside a landscape folder",
+      "help": "Any mesh whose path has a \"landscape\" folder (Meshes\\Landscape, Meshes\\DLC01\\Landscape, Meshes\\_ResourcePack\\Landscape, ...) is in scope. Terrain bases, campfires and other meshes outside those folders are skipped unless they match a pattern below."
+    },
+    "meshAddList": {
+      "label": "Additional Meshes",
+      "help": "Meshes outside a landscape folder to process anyway. Wildcards (*) allowed, e.g. \"*\\whiterun\\wrterrain\\*\". Right click to add/remove rows.",
+      "column": "Pattern"
+    },
+    "blend": {
+      "intro": "The blend pass flips alpha test to alpha blend on landscape meshes whose textures have a statics/blend sibling, in place at the mesh's own path, and gives the records that show such a texture a derived TextureSet. Textures without a sibling can get one generated automatically."
+    },
+    "blendMeshBlacklist": {
+      "label": "Blend Mesh Blacklist",
+      "help": "Meshes matching a rule here are never patched by the blend pass (glass, ice, ...). Wildcards (*) allowed. Right click to add/remove rows."
+    },
+    "blendEditorIdKeywords": {
+      "label": "Blend EditorID Blacklist Keywords",
+      "help": "Records whose EditorID contains one of these words (case-insensitive) are never touched by the blend pass. Right click to add/remove rows."
+    },
+    "generatePbrSlots": {
+      "label": "Generate PBR slots"
+    },
+    "autoGenerateAllowlist": {
+      "label": "Auto-Generate Allowlist",
+      "editButton": "Edit Allowlist...",
+      "help": "Only these source diffuse textures (relative to Data, e.g. \"textures\\landscape\\dirt01.dds\") get a missing statics sibling synthesized automatically. Wildcards (*) allowed. Right click to add/remove rows.",
+      "column": "Texture"
     }
   },
   "progress": {

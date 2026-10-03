@@ -38,6 +38,48 @@ auto makeSectionLabel(wxWindow* parent, const wxString& text) -> wxStaticText*
 }
 }
 
+namespace {
+// Fills / reads one of the inline editable tables (each ends with an empty row to type into).
+void fillListCtrl(PGModifiableListCtrl* ctrl, const vector<wstring>& values)
+{
+    ctrl->DeleteAllItems();
+    long index = 0;
+    for (const auto& value : values) {
+        ctrl->InsertItem(index++, wxString(value));
+    }
+    ctrl->InsertItem(ctrl->GetItemCount(), "");
+}
+
+void readListCtrl(const PGModifiableListCtrl* ctrl, vector<wstring>& out)
+{
+    out.clear();
+    long item = -1;
+    while ((item = ctrl->GetNextItem(item)) != -1) {
+        const wxString text = ctrl->GetItemText(item);
+        if (!text.IsEmpty()) {
+            out.push_back(text.ToStdWstring());
+        }
+    }
+}
+
+auto makeListCtrl(wxWindow* parent, const wxString& column, const vector<wstring>& values) -> PGModifiableListCtrl*
+{
+    auto* ctrl = new PGModifiableListCtrl(
+        parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLC_REPORT | wxLC_EDIT_LABELS | wxLC_NO_HEADER);
+    ctrl->AppendColumn(column, wxLIST_FORMAT_LEFT, wxLIST_AUTOSIZE_USEHEADER);
+    ctrl->SetColumnWidth(0, wxLIST_AUTOSIZE_USEHEADER);
+    fillListCtrl(ctrl, values);
+    return ctrl;
+}
+
+void fitListColumn(PGModifiableListCtrl* ctrl)
+{
+    if (ctrl != nullptr && ctrl->GetColumnCount() > 0) {
+        ctrl->SetColumnWidth(0, ctrl->GetClientSize().GetWidth());
+    }
+}
+}
+
 // A wxChoice under the mouse cursor swallows the mouse wheel and changes its own selection instead of
 // letting the scrolled General tab scroll - so scrolling past Game Type silently flipped it to Legendary
 // Edition (which then greyed out and unchecked "Generate PBR slots"), reported directly on Nexus. Every
@@ -99,9 +141,10 @@ LauncherWindow::LauncherWindow(const SFParams& initParams, filesystem::path exeP
 
     auto* introText = new wxStaticText(generalPanel, wxID_ANY,
         SFTr("launcher.intro",
-            "Scans the vanilla Skyrim SE Data folder for every record whose EditorID or mesh path "
-            "mentions snow, duplicates the winning mesh for each one, and writes a plugin pointing "
-            "at the duplicates - so they stay freely editable without touching any original asset."));
+            "Fixes the landscape meshes of your load order: alpha test becomes alpha blend with derived "
+            "\"blend\" TextureSets (Blend), and every snow record gets its own mesh copy with the snow "
+            "fixes applied (Snow). Only meshes inside a landscape folder are touched, everything is written "
+            "to one plugin, and PG Patcher is left to do the PBR conversion afterwards."));
     introText->Wrap(500);
     generalSizer->Add(introText, 0, wxALL, BORDER_SIZE * 2);
 
@@ -146,6 +189,7 @@ LauncherWindow::LauncherWindow(const SFParams& initParams, filesystem::path exeP
     gameTypeChoices.Add(SFTr("launcher.gameType.le", "Skyrim Legendary Edition"));
     m_gameTypeChoice = new wxChoice(generalPanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, gameTypeChoices);
     m_gameTypeChoice->SetSelection(initParams.gameType == SFGameType::SkyrimLE ? 1 : 0);
+    m_gameTypeChoice->Bind(wxEVT_CHOICE, &LauncherWindow::onGameTypeChanged, this);
     generalSizer->Add(m_gameTypeChoice, 0, wxEXPAND | wxALL, BORDER_SIZE);
 
     // Output location
@@ -207,6 +251,53 @@ LauncherWindow::LauncherWindow(const SFParams& initParams, filesystem::path exeP
     // under an unrelated one. Paired side-by-side with Mesh Vertex Colors below to keep the dialog
     // from growing too tall.
     constexpr int HELP_WRAP_PAIRED = 300;
+    constexpr int HELP_WRAP_BLEND = 300;
+
+    // Passes and scope - which of the two passes run, and which meshes are in scope at all. The
+    // scope is the game's own landscape folders (any "landscape" folder segment: Meshes\Landscape,
+    // Meshes\DLC01\Landscape, ...); meshes outside them (architecture terrain bases, campfires,
+    // furniture, ...) are left alone unless they match one of the additional-mesh wildcards.
+    generalSizer->Add(makeSectionLabel(generalPanel, SFTr("launcher.passes.label", "Passes")), 0,
+        wxLEFT | wxRIGHT | wxTOP, BORDER_SIZE);
+
+    m_enableBlendCheckbox = new wxCheckBox(generalPanel, wxID_ANY,
+        SFTr("launcher.passes.blend", "Blend: alpha test to alpha blend on landscape meshes, with derived \"blend\" TextureSets"));
+    m_enableBlendCheckbox->SetValue(initParams.enableBlend);
+    generalSizer->Add(m_enableBlendCheckbox, 0, wxLEFT | wxTOP, BORDER_SIZE * 2);
+
+    m_enableSnowCheckbox = new wxCheckBox(generalPanel, wxID_ANY,
+        SFTr("launcher.passes.snow", "Snow: a mesh copy and a plugin override for every snow record"));
+    m_enableSnowCheckbox->SetValue(initParams.enableSnow);
+    generalSizer->Add(m_enableSnowCheckbox, 0, wxLEFT | wxTOP, BORDER_SIZE * 2);
+
+    generalSizer->Add(makeSectionLabel(generalPanel, SFTr("launcher.scope.label", "Landscape Scope")), 0,
+        wxLEFT | wxRIGHT | wxTOP, BORDER_SIZE * 2);
+
+    m_restrictToLandscapeCheckbox = new wxCheckBox(generalPanel, wxID_ANY,
+        SFTr("launcher.scope.restrict", "Only process meshes inside a landscape folder"));
+    m_restrictToLandscapeCheckbox->SetValue(initParams.restrictToLandscapeFolders);
+    generalSizer->Add(m_restrictToLandscapeCheckbox, 0, wxLEFT | wxTOP, BORDER_SIZE * 2);
+
+    auto* scopeHelpText = new wxStaticText(generalPanel, wxID_ANY,
+        SFTr("launcher.scope.help",
+            "Any mesh whose path has a \"landscape\" folder (Meshes\\Landscape, Meshes\\DLC01\\Landscape, "
+            "Meshes\\_ResourcePack\\Landscape, ...) is in scope. Terrain bases, campfires and other meshes "
+            "outside those folders are skipped unless they match a pattern below."));
+    scopeHelpText->Wrap(HELP_WRAP_PAIRED * 2);
+    generalSizer->Add(scopeHelpText, 0, wxLEFT | wxRIGHT | wxTOP, BORDER_SIZE * 2);
+
+    generalSizer->Add(makeSectionLabel(generalPanel, SFTr("launcher.meshAddList.label", "Additional Meshes")), 0,
+        wxLEFT | wxRIGHT | wxTOP, BORDER_SIZE * 2);
+    auto* meshAddListHelpText = new wxStaticText(generalPanel, wxID_ANY,
+        SFTr("launcher.meshAddList.help",
+            "Meshes outside a landscape folder to process anyway. Wildcards (*) allowed, e.g. "
+            "\"*\\whiterun\\wrterrain\\*\". Right click to add/remove rows."));
+    meshAddListHelpText->Wrap(HELP_WRAP_PAIRED * 2);
+    generalSizer->Add(meshAddListHelpText, 0, wxLEFT | wxRIGHT | wxTOP, BORDER_SIZE * 2);
+
+    m_meshAddListCtrl = makeListCtrl(generalPanel, SFTr("launcher.meshAddList.column", "Pattern"), initParams.meshAddList);
+    m_meshAddListCtrl->SetMinSize(wxSize(-1, 90));
+    generalSizer->Add(m_meshAddListCtrl, 0, wxEXPAND | wxALL, BORDER_SIZE * 2);
 
     auto* vertexColorsRowSizer = new wxBoxSizer(wxHORIZONTAL);
     auto* landscapeColumnSizer = new wxBoxSizer(wxVERTICAL);
@@ -379,7 +470,7 @@ LauncherWindow::LauncherWindow(const SFParams& initParams, filesystem::path exeP
     auto* meshBlacklistColumnSizer = new wxBoxSizer(wxVERTICAL);
     auto* editorIdKeywordsColumnSizer = new wxBoxSizer(wxVERTICAL);
 
-    meshBlacklistColumnSizer->Add(makeSectionLabel(generalPanel, SFTr("launcher.meshBlacklist.label", "Mesh Blacklist")), 0,
+    meshBlacklistColumnSizer->Add(makeSectionLabel(generalPanel, SFTr("launcher.meshBlacklist.label", "Snow Mesh Blacklist")), 0,
         wxTOP, BORDER_SIZE);
 
     auto* meshBlacklistHelpText = new wxStaticText(generalPanel, wxID_ANY,
@@ -403,7 +494,7 @@ LauncherWindow::LauncherWindow(const SFParams& initParams, filesystem::path exeP
     meshBlacklistColumnSizer->Add(m_meshBlacklistCtrl, 1, wxEXPAND | wxTOP, BORDER_SIZE);
 
     // EditorID blacklist keywords - same inline editable table pattern.
-    editorIdKeywordsColumnSizer->Add(makeSectionLabel(generalPanel, SFTr("launcher.editorIdKeywords.label", "EditorID Blacklist Keywords")), 0,
+    editorIdKeywordsColumnSizer->Add(makeSectionLabel(generalPanel, SFTr("launcher.editorIdKeywords.label", "Snow EditorID Blacklist Keywords")), 0,
         wxTOP, BORDER_SIZE);
 
     auto* editorIdKeywordsHelpText = new wxStaticText(generalPanel, wxID_ANY,
@@ -441,6 +532,89 @@ LauncherWindow::LauncherWindow(const SFParams& initParams, filesystem::path exeP
     // of the tab is visible before scrolling kicks in, regardless of how tall the content gets.
     generalPanel->SetMinSize(wxSize(-1, 200));
     notebook->AddPage(generalPanel, SFTr("launcher.tab.general", "General"));
+
+    // "Blend" tab - options of the blend pass (the former AutoBlend): which textures may get a
+    // synthesized statics sibling, whether PBR slots are generated, and what the pass leaves alone.
+    auto* blendPanel = new wxScrolledWindow(notebook);
+    blendPanel->SetScrollRate(0, 30);
+    auto* blendSizer = new wxBoxSizer(wxVERTICAL);
+
+    auto* blendIntroText = new wxStaticText(blendPanel, wxID_ANY,
+        SFTr("launcher.blend.intro",
+            "The blend pass flips alpha test to alpha blend on landscape meshes whose textures have a "
+            "statics/blend sibling, in place at the mesh's own path, and gives the records that show such a "
+            "texture a derived TextureSet. Textures without a sibling can get one generated automatically."));
+    blendIntroText->Wrap(500);
+    blendSizer->Add(blendIntroText, 0, wxALL, BORDER_SIZE * 2);
+
+    m_generatePbrSlotsCheckbox = new wxCheckBox(blendPanel, wxID_ANY,
+        SFTr("launcher.generatePbrSlots.label", "Generate PBR slots"));
+    m_generatePbrSlotsCheckbox->SetValue(initParams.generatePbrSlots);
+    blendSizer->Add(m_generatePbrSlotsCheckbox, 0, wxALL, BORDER_SIZE * 2);
+
+    blendSizer->Add(makeSectionLabel(blendPanel, SFTr("launcher.autoGenerateAllowlist.label", "Auto-Generate Allowlist")), 0,
+        wxLEFT | wxRIGHT | wxTOP, BORDER_SIZE);
+    auto* editAllowlistButton = new wxButton(blendPanel, wxID_ANY,
+        SFTr("launcher.autoGenerateAllowlist.editButton", "Edit Allowlist..."));
+    editAllowlistButton->Bind(wxEVT_BUTTON, &LauncherWindow::onEditAllowlistButtonPressed, this);
+    blendSizer->Add(editAllowlistButton, 0, wxALL, BORDER_SIZE);
+
+    // Built once (not per click) so edits persist across repeated opens, exactly like every other field.
+    m_autoGenerateAllowlistDialog = new wxDialog(this, wxID_ANY,
+        SFTr("launcher.autoGenerateAllowlist.label", "Auto-Generate Allowlist"), wxDefaultPosition, wxSize(520, 520),
+        wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER);
+    auto* allowlistDialogSizer = new wxBoxSizer(wxVERTICAL);
+    auto* allowlistHelpText = new wxStaticText(m_autoGenerateAllowlistDialog, wxID_ANY,
+        SFTr("launcher.autoGenerateAllowlist.help",
+            "Only these source diffuse textures (relative to Data, e.g. \"textures\\landscape\\dirt01.dds\") get a "
+            "missing statics sibling synthesized automatically. Wildcards (*) allowed. Right click to add/remove rows."));
+    allowlistHelpText->Wrap(480);
+    allowlistDialogSizer->Add(allowlistHelpText, 0, wxEXPAND | wxALL, BORDER_SIZE);
+    m_autoGenerateAllowlistCtrl = makeListCtrl(m_autoGenerateAllowlistDialog,
+        SFTr("launcher.autoGenerateAllowlist.column", "Texture"), initParams.autoGenerateAllowlist);
+    allowlistDialogSizer->Add(m_autoGenerateAllowlistCtrl, 1, wxEXPAND | wxALL, BORDER_SIZE);
+    allowlistDialogSizer->Add(new wxButton(m_autoGenerateAllowlistDialog, wxID_OK, SFTr("common.close", "Close")), 0,
+        wxALIGN_RIGHT | wxALL, BORDER_SIZE);
+    m_autoGenerateAllowlistDialog->SetSizer(allowlistDialogSizer);
+    m_autoGenerateAllowlistDialog->Bind(wxEVT_SIZE, [this](wxSizeEvent& event) -> void {
+        fitListColumn(m_autoGenerateAllowlistCtrl);
+        event.Skip();
+    });
+
+    auto* blendListsRowSizer = new wxBoxSizer(wxHORIZONTAL);
+    auto* blendMeshColumnSizer = new wxBoxSizer(wxVERTICAL);
+    auto* blendKeywordColumnSizer = new wxBoxSizer(wxVERTICAL);
+
+    blendMeshColumnSizer->Add(makeSectionLabel(blendPanel, SFTr("launcher.blendMeshBlacklist.label", "Blend Mesh Blacklist")), 0, wxTOP, BORDER_SIZE);
+    auto* blendMeshHelpText = new wxStaticText(blendPanel, wxID_ANY,
+        SFTr("launcher.blendMeshBlacklist.help",
+            "Meshes matching a rule here are never patched by the blend pass (glass, ice, ...). Wildcards (*) "
+            "allowed. Right click to add/remove rows."));
+    blendMeshHelpText->Wrap(HELP_WRAP_BLEND);
+    blendMeshColumnSizer->Add(blendMeshHelpText, 0, wxTOP, BORDER_SIZE);
+    m_blendMeshBlacklistCtrl = makeListCtrl(blendPanel, SFTr("launcher.meshBlacklist.column", "Rule"), initParams.blendMeshBlacklist);
+    blendMeshColumnSizer->Add(m_blendMeshBlacklistCtrl, 1, wxEXPAND | wxTOP, BORDER_SIZE);
+
+    blendKeywordColumnSizer->Add(makeSectionLabel(blendPanel, SFTr("launcher.blendEditorIdKeywords.label", "Blend EditorID Blacklist Keywords")), 0, wxTOP, BORDER_SIZE);
+    auto* blendKeywordHelpText = new wxStaticText(blendPanel, wxID_ANY,
+        SFTr("launcher.blendEditorIdKeywords.help",
+            "Records whose EditorID contains one of these words (case-insensitive) are never touched by the blend "
+            "pass. Right click to add/remove rows."));
+    blendKeywordHelpText->Wrap(HELP_WRAP_BLEND);
+    blendKeywordColumnSizer->Add(blendKeywordHelpText, 0, wxTOP, BORDER_SIZE);
+    m_blendEditorIdKeywordsCtrl = makeListCtrl(blendPanel, SFTr("launcher.editorIdKeywords.column", "Keyword"),
+        initParams.blendEditorIdBlacklistKeywords);
+    blendKeywordColumnSizer->Add(m_blendEditorIdKeywordsCtrl, 1, wxEXPAND | wxTOP, BORDER_SIZE);
+
+    blendListsRowSizer->Add(blendMeshColumnSizer, 1, wxEXPAND | wxLEFT | wxRIGHT, BORDER_SIZE);
+    blendListsRowSizer->Add(blendKeywordColumnSizer, 1, wxEXPAND | wxLEFT | wxRIGHT, BORDER_SIZE);
+    blendSizer->Add(blendListsRowSizer, 1, wxEXPAND | wxBOTTOM, BORDER_SIZE);
+
+    blendPanel->SetSizer(blendSizer);
+    blendPanel->FitInside();
+    forwardChoiceWheelToScrollPanel(blendPanel, blendPanel);
+    blendPanel->SetMinSize(wxSize(-1, 200));
+    notebook->AddPage(blendPanel, SFTr("launcher.tab.blend", "Blend"));
 
     // "Options" tab - app-wide preferences (language, theme) rather than per-run settings, same
     // split AutoBlend uses.
@@ -505,6 +679,12 @@ LauncherWindow::LauncherWindow(const SFParams& initParams, filesystem::path exeP
         updateListColumnWidths();
         event.Skip();
     });
+    for (auto* ctrl : { m_meshAddListCtrl, m_blendMeshBlacklistCtrl, m_blendEditorIdKeywordsCtrl, m_autoGenerateAllowlistCtrl }) {
+        ctrl->Bind(pgEVT_LISTCTRL_CHANGED, [this](PGCustomListctrlChangedEvent& event) -> void {
+            updateListColumnWidths();
+            event.Skip();
+        });
+    }
 
     mainSizer->Add(new wxStaticLine(this, wxID_ANY), 0, wxEXPAND | wxALL, BORDER_SIZE);
 
@@ -527,6 +707,7 @@ LauncherWindow::LauncherWindow(const SFParams& initParams, filesystem::path exeP
     // generalPanel's own scrollbar absorb whatever doesn't fit is what actually keeps this working
     // on smaller screens instead of merely delaying the same problem.
     SetSizer(mainSizer);
+    updateGameTypeFieldState();
     updateListColumnWidths();
 }
 
@@ -598,6 +779,15 @@ void LauncherWindow::getParams(SFParams& outParams) const
 
     outParams.hideDecalShapes = m_hideDecalShapesCheckbox->GetValue();
     outParams.removeIceSnowMaterial = m_removeIceSnowMaterialCheckbox->GetValue();
+
+    outParams.enableBlend = m_enableBlendCheckbox->GetValue();
+    outParams.enableSnow = m_enableSnowCheckbox->GetValue();
+    outParams.restrictToLandscapeFolders = m_restrictToLandscapeCheckbox->GetValue();
+    readListCtrl(m_meshAddListCtrl, outParams.meshAddList);
+    readListCtrl(m_blendMeshBlacklistCtrl, outParams.blendMeshBlacklist);
+    readListCtrl(m_blendEditorIdKeywordsCtrl, outParams.blendEditorIdBlacklistKeywords);
+    outParams.generatePbrSlots = m_generatePbrSlotsCheckbox->GetValue();
+    readListCtrl(m_autoGenerateAllowlistCtrl, outParams.autoGenerateAllowlist);
 }
 
 void LauncherWindow::onLanguageChanged([[maybe_unused]] wxCommandEvent& event)
@@ -763,6 +953,16 @@ void LauncherWindow::applyLoadedParams(const SFParams& params)
     m_hideDecalShapesCheckbox->SetValue(params.hideDecalShapes);
     m_removeIceSnowMaterialCheckbox->SetValue(params.removeIceSnowMaterial);
 
+    m_enableBlendCheckbox->SetValue(params.enableBlend);
+    m_enableSnowCheckbox->SetValue(params.enableSnow);
+    m_restrictToLandscapeCheckbox->SetValue(params.restrictToLandscapeFolders);
+    fillListCtrl(m_meshAddListCtrl, params.meshAddList);
+    fillListCtrl(m_blendMeshBlacklistCtrl, params.blendMeshBlacklist);
+    fillListCtrl(m_blendEditorIdKeywordsCtrl, params.blendEditorIdBlacklistKeywords);
+    m_generatePbrSlotsCheckbox->SetValue(params.generatePbrSlots);
+    fillListCtrl(m_autoGenerateAllowlistCtrl, params.autoGenerateAllowlist);
+    updateGameTypeFieldState();
+
     updateListColumnWidths();
 }
 
@@ -813,12 +1013,30 @@ void LauncherWindow::refreshMo2Profiles()
 
 void LauncherWindow::updateListColumnWidths()
 {
-    if (m_meshBlacklistCtrl != nullptr && m_meshBlacklistCtrl->GetColumnCount() > 0) {
-        m_meshBlacklistCtrl->SetColumnWidth(0, m_meshBlacklistCtrl->GetClientSize().GetWidth());
+    fitListColumn(m_meshBlacklistCtrl);
+    fitListColumn(m_editorIdKeywordsCtrl);
+    fitListColumn(m_meshAddListCtrl);
+    fitListColumn(m_blendMeshBlacklistCtrl);
+    fitListColumn(m_blendEditorIdKeywordsCtrl);
+    fitListColumn(m_autoGenerateAllowlistCtrl);
+}
+
+void LauncherWindow::onGameTypeChanged([[maybe_unused]] wxCommandEvent& event) { updateGameTypeFieldState(); }
+
+// PBR slots rely on TruePBR (Community Shaders), which only exists on Skyrim SE - on Legendary Edition
+// the option is unchecked and disabled instead of looking like a working option that does nothing.
+void LauncherWindow::updateGameTypeFieldState()
+{
+    const bool isLe = m_gameTypeChoice->GetSelection() == 1;
+    if (isLe) {
+        m_generatePbrSlotsCheckbox->SetValue(false);
     }
-    if (m_editorIdKeywordsCtrl != nullptr && m_editorIdKeywordsCtrl->GetColumnCount() > 0) {
-        m_editorIdKeywordsCtrl->SetColumnWidth(0, m_editorIdKeywordsCtrl->GetClientSize().GetWidth());
-    }
+    m_generatePbrSlotsCheckbox->Enable(!isLe);
+}
+
+void LauncherWindow::onEditAllowlistButtonPressed([[maybe_unused]] wxCommandEvent& event)
+{
+    m_autoGenerateAllowlistDialog->ShowModal();
 }
 
 void LauncherWindow::commitPendingListEdits()
@@ -833,6 +1051,10 @@ void LauncherWindow::commitPendingListEdits()
     // own LauncherWindow.cpp, which added this after a real report of exactly this data loss.
     m_meshBlacklistCtrl->EndEditLabel(false);
     m_editorIdKeywordsCtrl->EndEditLabel(false);
+    m_meshAddListCtrl->EndEditLabel(false);
+    m_blendMeshBlacklistCtrl->EndEditLabel(false);
+    m_blendEditorIdKeywordsCtrl->EndEditLabel(false);
+    m_autoGenerateAllowlistCtrl->EndEditLabel(false);
 }
 
 void LauncherWindow::onOkButtonPressed([[maybe_unused]] wxCommandEvent& event)

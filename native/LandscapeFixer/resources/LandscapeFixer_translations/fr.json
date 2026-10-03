@@ -5,7 +5,7 @@
     "cancel": "Annuler"
   },
   "launcher": {
-    "intro": "Analyse le dossier Data de Skyrim SE vanilla à la recherche de tout record dont l'EditorID ou le chemin de mesh mentionne \"snow\", duplique le mesh gagnant pour chacun, et écrit un plugin pointant vers les duplicatas - qui restent ainsi librement modifiables sans toucher aux fichiers d'origine.",
+    "intro": "Corrige les meshes de landscape de votre load order : l'alpha test devient de l'alpha blend avec des TextureSets « blend » dérivés (Blend), et chaque record de neige reçoit sa propre copie de mesh avec les correctifs de neige (Snow). Seuls les meshes situés dans un dossier landscape sont modifiés, tout est écrit dans un seul plugin, et la conversion PBR est laissée à PG Patcher ensuite.",
     "configProfile": {
       "label": "Profil de configuration",
       "load": "Charger la configuration...",
@@ -57,13 +57,13 @@
       "snowOnly": "Appliquer sur les meshes neige générés"
     },
     "meshBlacklist": {
-      "label": "Liste noire de meshes",
-      "help": "Les meshes correspondant à une règle ici ne sont jamais dupliqués ni patchés. Jokers (*) autorisés, ex. \"*\\trees\\*\". Clic droit pour ajouter/supprimer des lignes.",
+      "label": "Blacklist des meshes (Snow)",
+      "help": "Les meshes correspondant à une règle ici ne sont jamais copiés par la passe Snow. Jokers (*) autorisés, p. ex. « *\\trees\\* ». Clic droit pour ajouter/supprimer des lignes.",
       "column": "Règle"
     },
     "editorIdKeywords": {
-      "label": "Mots-clés EditorID en liste noire",
-      "help": "Les enregistrements dont l'EditorID contient l'un de ces mots (insensible à la casse) sont entièrement ignorés - utile pour exclure les faux positifs. Clic droit pour ajouter/supprimer des lignes.",
+      "label": "Mots-clés EditorID exclus (Snow)",
+      "help": "Les records dont l'EditorID contient un de ces mots (insensible à la casse) sont ignorés par la passe Snow - utile pour exclure de faux positifs. Clic droit pour ajouter/supprimer des lignes.",
       "column": "Mot-clé"
     },
     "hideDecalShapes": {
@@ -78,7 +78,8 @@
     },
     "tab": {
       "general": "Général",
-      "options": "Options"
+      "options": "Options",
+      "blend": "Blend"
     },
     "language": {
       "label": "Langue"
@@ -105,6 +106,41 @@
     "missingMo2Profile": {
       "message": "Aucun profil MO2 n'est sélectionné. Vérifiez que le chemin de l'instance MO2 pointe vers votre instance (le dossier contenant ModOrganizer.ini, ou celui qui contient vos mods et profils), puis choisissez un profil.",
       "title": "Profil MO2 manquant"
+    },
+    "passes": {
+      "label": "Passes",
+      "blend": "Blend : alpha test vers alpha blend sur les meshes landscape, avec des TextureSets « blend » dérivés",
+      "snow": "Snow : une copie de mesh et une surcharge de plugin pour chaque record de neige"
+    },
+    "scope": {
+      "label": "Périmètre landscape",
+      "restrict": "Ne traiter que les meshes situés dans un dossier landscape",
+      "help": "Tout mesh dont le chemin contient un dossier « landscape » (Meshes\\Landscape, Meshes\\DLC01\\Landscape, Meshes\\_ResourcePack\\Landscape, ...) est dans le périmètre. Les socles de terrain, feux de camp et autres meshes hors de ces dossiers sont ignorés, sauf s'ils correspondent à un motif ci-dessous."
+    },
+    "meshAddList": {
+      "label": "Meshes supplémentaires",
+      "help": "Meshes situés hors d'un dossier landscape à traiter quand même. Jokers (*) autorisés, p. ex. « *\\whiterun\\wrterrain\\* ». Clic droit pour ajouter/supprimer des lignes.",
+      "column": "Motif"
+    },
+    "blend": {
+      "intro": "La passe Blend passe l'alpha test en alpha blend sur les meshes landscape dont les textures ont un équivalent statics/blend, directement sur le chemin du mesh, et donne aux records qui affichent cette texture un TextureSet dérivé. Les textures sans équivalent peuvent en recevoir un généré automatiquement."
+    },
+    "blendMeshBlacklist": {
+      "label": "Blacklist des meshes (Blend)",
+      "help": "Les meshes correspondant à une règle ici ne sont jamais modifiés par la passe Blend (verre, glace, ...). Jokers (*) autorisés. Clic droit pour ajouter/supprimer des lignes."
+    },
+    "blendEditorIdKeywords": {
+      "label": "Mots-clés EditorID exclus (Blend)",
+      "help": "Les records dont l'EditorID contient un de ces mots (insensible à la casse) ne sont jamais touchés par la passe Blend. Clic droit pour ajouter/supprimer des lignes."
+    },
+    "generatePbrSlots": {
+      "label": "Générer les slots PBR"
+    },
+    "autoGenerateAllowlist": {
+      "label": "Liste autorisée de génération automatique",
+      "editButton": "Modifier la liste...",
+      "help": "Seules ces textures diffuse sources (relatives à Data, p. ex. « textures\\landscape\\dirt01.dds ») reçoivent automatiquement un équivalent statics généré. Jokers (*) autorisés. Clic droit pour ajouter/supprimer des lignes.",
+      "column": "Texture"
     }
   },
   "progress": {

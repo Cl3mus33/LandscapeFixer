@@ -103,9 +103,6 @@ public sealed class ExtractSettings
         @"*\snowelfruins\*",
         @"*\wet\*",
         @"*\lod\*",
-        @"*\clutter\*",
-        @"*\architecture\*",
-        @"*\dungeons\*",
         @"*\glaciers\*",
     };
 

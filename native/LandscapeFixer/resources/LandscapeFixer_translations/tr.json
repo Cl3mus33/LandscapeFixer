@@ -5,7 +5,6 @@
     "cancel": "İptal"
   },
   "launcher": {
-    "intro": "Skyrim SE’nin vanilla Data klasörünü, EditorID’sinde veya mesh yolunda kar ifadesi geçen tüm kayıtlar için tarar; her biri için kullanılan mesh’in bir kopyasını oluşturur ve kopyalara işaret eden bir eklenti yazar. Böylece hiçbir özgün varlığa dokunmadan bunlar üzerinde özgürce düzenleme yapılabilir.",
     "configProfile": {
       "label": "Yapılandırma Profili",
       "load": "Yapılandırmayı Yükle...",
@@ -57,13 +56,9 @@
       "snowOnly": "Oluşturulan kar mesh’lerine uygula"
     },
     "meshBlacklist": {
-      "label": "Mesh Kara Listesi",
-      "help": "Buradaki bir kuralla eşleşen mesh’ler hiçbir zaman kopyalanmaz veya yamalanmaz. Joker karakterler (*) desteklenir; örneğin \"*\\trees\\*\". Satır eklemek/kaldırmak için sağ tıklayın.",
       "column": "Kural"
     },
     "editorIdKeywords": {
-      "label": "EditorID Kara Liste Anahtar Sözcükleri",
-      "help": "EditorID’sinde bu sözcüklerden biri bulunan kayıtlar (büyük/küçük harf duyarsız) tamamen atlanır; yanlış pozitif eşleşmeleri hariç tutmak için kullanışlıdır. Satır eklemek/kaldırmak için sağ tıklayın.",
       "column": "Anahtar Sözcük"
     },
     "hideDecalShapes": {

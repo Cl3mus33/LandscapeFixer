@@ -99,6 +99,42 @@ auto SFConfig::loadFrom(const filesystem::path& configFilePath) -> SFParams
         if (configJ.contains("RemoveIceSnowMaterial")) {
             params.removeIceSnowMaterial = configJ["RemoveIceSnowMaterial"].get<bool>();
         }
+        if (configJ.contains("EnableBlend")) {
+            params.enableBlend = configJ["EnableBlend"].get<bool>();
+        }
+        if (configJ.contains("EnableSnow")) {
+            params.enableSnow = configJ["EnableSnow"].get<bool>();
+        }
+        if (configJ.contains("RestrictToLandscapeFolders")) {
+            params.restrictToLandscapeFolders = configJ["RestrictToLandscapeFolders"].get<bool>();
+        }
+        if (configJ.contains("MeshAddList")) {
+            params.meshAddList.clear();
+            for (const auto& item : configJ["MeshAddList"]) {
+                params.meshAddList.push_back(StringUtil::utf8toUTF16(item.get<string>()));
+            }
+        }
+        if (configJ.contains("BlendMeshBlacklist")) {
+            params.blendMeshBlacklist.clear();
+            for (const auto& item : configJ["BlendMeshBlacklist"]) {
+                params.blendMeshBlacklist.push_back(StringUtil::utf8toUTF16(item.get<string>()));
+            }
+        }
+        if (configJ.contains("BlendEditorIdBlacklistKeywords")) {
+            params.blendEditorIdBlacklistKeywords.clear();
+            for (const auto& item : configJ["BlendEditorIdBlacklistKeywords"]) {
+                params.blendEditorIdBlacklistKeywords.push_back(StringUtil::utf8toUTF16(item.get<string>()));
+            }
+        }
+        if (configJ.contains("GeneratePbrSlots")) {
+            params.generatePbrSlots = configJ["GeneratePbrSlots"].get<bool>();
+        }
+        if (configJ.contains("AutoGenerateAllowlist")) {
+            params.autoGenerateAllowlist.clear();
+            for (const auto& item : configJ["AutoGenerateAllowlist"]) {
+                params.autoGenerateAllowlist.push_back(StringUtil::utf8toUTF16(item.get<string>()));
+            }
+        }
     } catch (const exception& e) {
         Logger::warn("Failed to parse settings file, using defaults: {}", e.what());
         return SFParams {};
@@ -135,6 +171,32 @@ auto SFConfig::toJson(const SFParams& params) -> nlohmann::json
 
     configJ["HideDecalShapes"] = params.hideDecalShapes;
     configJ["RemoveIceSnowMaterial"] = params.removeIceSnowMaterial;
+
+    configJ["EnableBlend"] = params.enableBlend;
+    configJ["EnableSnow"] = params.enableSnow;
+    configJ["RestrictToLandscapeFolders"] = params.restrictToLandscapeFolders;
+
+    configJ["MeshAddList"] = nlohmann::json::array();
+    for (const auto& item : params.meshAddList) {
+        configJ["MeshAddList"].push_back(StringUtil::utf16toUTF8(item));
+    }
+
+    configJ["BlendMeshBlacklist"] = nlohmann::json::array();
+    for (const auto& item : params.blendMeshBlacklist) {
+        configJ["BlendMeshBlacklist"].push_back(StringUtil::utf16toUTF8(item));
+    }
+
+    configJ["BlendEditorIdBlacklistKeywords"] = nlohmann::json::array();
+    for (const auto& item : params.blendEditorIdBlacklistKeywords) {
+        configJ["BlendEditorIdBlacklistKeywords"].push_back(StringUtil::utf16toUTF8(item));
+    }
+
+    configJ["GeneratePbrSlots"] = params.generatePbrSlots;
+
+    configJ["AutoGenerateAllowlist"] = nlohmann::json::array();
+    for (const auto& item : params.autoGenerateAllowlist) {
+        configJ["AutoGenerateAllowlist"].push_back(StringUtil::utf16toUTF8(item));
+    }
 
     return configJ;
 }

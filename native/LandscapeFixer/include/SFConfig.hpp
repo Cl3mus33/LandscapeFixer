@@ -82,10 +82,9 @@ struct SFParams {
     /// LandscapeFixer.Core.Configuration.ExtractSettings.MeshBlacklist for the reasoning behind each
     /// entry; both sides must stay in lockstep.
     std::vector<std::wstring> meshBlacklist {
-        LR"(*\trees\*)",       LR"(*\ice\*)",         LR"(*\effects\*)",
-        LR"(*\weapons\*)",     LR"(*\trophy\*)",      LR"(*\snowelfruins\*)",
-        LR"(*\wet\*)",         LR"(*\lod\*)",         LR"(*\clutter\*)",
-        LR"(*\architecture\*)", LR"(*\dungeons\*)",    LR"(*\glaciers\*)",
+        LR"(*\trees\*)",   LR"(*\ice\*)",     LR"(*\effects\*)",
+        LR"(*\weapons\*)", LR"(*\trophy\*)",  LR"(*\snowelfruins\*)",
+        LR"(*\wet\*)",     LR"(*\lod\*)",     LR"(*\glaciers\*)",
     };
     /// @brief Records whose EditorID contains one of these words (case-insensitive) are skipped
     /// entirely. Defaults refined through real use - see
@@ -103,6 +102,72 @@ struct SFParams {
     /// @brief Clears the snow Material Object (SnowMaterialGlacier / SnowMaterialGlacierSlab) link on
     /// every static that uses it, so no projected snow covers glaciers/ice. Off by default.
     bool removeIceSnowMaterial = false;
+
+    /// @brief Runs the blend pass (alpha test -> alpha blend on landscape meshes, derived "blend"
+    /// TextureSets, PBRNifPatcher / PBRTextureSets json).
+    bool enableBlend = true;
+    /// @brief Runs the snow pass (a mesh copy and a plugin override for every snow record).
+    bool enableSnow = true;
+
+    /// @brief Only meshes inside a landscape folder (any "landscape" folder segment) are processed;
+    /// meshAddList lists wildcard patterns of meshes outside those folders to process anyway.
+    bool restrictToLandscapeFolders = true;
+    std::vector<std::wstring> meshAddList;
+
+    /// @brief Meshes matching these are never touched by the blend pass. See
+    /// LandscapeFixer.Core.Configuration.ExtractSettings.BlendMeshBlacklist - both sides must stay in lockstep.
+    std::vector<std::wstring> blendMeshBlacklist {
+        LR"(*\glass\*)", LR"(*\ice\*)",     LR"(*\trees\*)", LR"(*\actors\*)",
+        LR"(*\roads\*)", LR"(*\effects\*)", LR"(*\magic\*)", LR"(*\weapons\*)",
+    };
+    /// @brief Records whose EditorID contains one of these are never touched by the blend pass.
+    std::vector<std::wstring> blendEditorIdBlacklistKeywords {
+        L"ice", L"frozen", L"glass", L"unique", L"wet", L"road", L"cave", L"mine",
+    };
+
+    /// @brief Also generates a PBR sibling (Height/RMAOS) for landscape textures that have none.
+    bool generatePbrSlots = false;
+
+    /// @brief Source diffuse textures a missing statics/blend sibling may be synthesized for. Mirrors
+    /// LandscapeCommon.Configuration.AutoGenerateAllowlistDefaults - both sides must stay in lockstep.
+    std::vector<std::wstring> autoGenerateAllowlist {
+        LR"(textures\_resourcepack\landscape\desertrocks01_d.dds)",
+        LR"(textures\_resourcepack\landscape\sand01_d.dds)",
+        LR"(textures\_resourcepack\landscape\sand02_d.dds)",
+        LR"(textures\_resourcepack\landscape\volcaniccracked01_d.dds)",
+        LR"(textures\_resourcepack\landscape\volcanicrocks01_d.dds)",
+        LR"(textures\bscyrodiil\landscape\colovianrocks01revised.dds)",
+        LR"(textures\bscyrodiil\landscape\dirt01.dds)",
+        LR"(textures\bscyrodiil\landscape\oakforestgrass01.dds)",
+        LR"(textures\bscyrodiil\landscape\oakforestleaves01.dds)",
+        LR"(textures\bstamriel\landscape\westweald\rockswestweald.dds)",
+        LR"(textures\bstamriel\landscape\westweald\wwlemoss01.dds)",
+        LR"(textures\dlc02\landscape\volcanic_ash_01.dds)",
+        LR"(textures\dlc02\landscape\volcanic_ash_rocks_01_d.dds)",
+        LR"(textures\dlc02\landscape\volcanic_ash_tundra_02.dds)",
+        LR"(textures\dlc02\landscape\volcanic_ash_tundra_04.dds)",
+        LR"(textures\landscape\coastbeach01.dds)",
+        LR"(textures\landscape\dirt02.dds)",
+        LR"(textures\landscape\fallforestdirt01.dds)",
+        LR"(textures\landscape\fallforestgrass01.dds)",
+        LR"(textures\landscape\fallforestleaves01.dds)",
+        LR"(textures\landscape\fallforestrocks01.dds)",
+        LR"(textures\landscape\fieldgrass01.dds)",
+        LR"(textures\landscape\fieldgrass02.dds)",
+        LR"(textures\landscape\frozenmarshice01.dds)",
+        LR"(textures\landscape\mineralpoolterrace.dds)",
+        LR"(textures\landscape\reachmossyrocks01.dds)",
+        LR"(textures\landscape\riverbededge.dds)",
+        LR"(textures\landscape\rocks01.dds)",
+        LR"(textures\landscape\snow01.dds)",
+        LR"(textures\landscape\snowrocks01.dds)",
+        LR"(textures\landscape\tundra01.dds)",
+        LR"(textures\landscape\tundrarocks01.dds)",
+        LR"(textures\landscape\volcanictundradirt01.dds)",
+        LR"(textures\landscape\volcanictundragravel01.dds)",
+        LR"(textures\landscape\volcanictundraminerals01.dds)",
+        LR"(textures\landscape\volcanictundrarocks01.dds)",
+    };
 };
 
 /**

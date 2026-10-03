@@ -5,7 +5,6 @@
     "cancel": "Annulla"
   },
   "launcher": {
-    "intro": "Analizza la cartella Data di Skyrim SE vanilla alla ricerca di ogni record il cui EditorID o percorso mesh menzioni \"snow\", duplica la mesh vincente per ciascuno e scrive un plugin che punta ai duplicati - che restano così liberamente modificabili senza toccare alcun file originale.",
     "configProfile": {
       "label": "Profilo di configurazione",
       "load": "Carica configurazione...",
@@ -57,13 +56,9 @@
       "snowOnly": "Applica sulle mesh di neve generate"
     },
     "meshBlacklist": {
-      "label": "Lista nera delle mesh",
-      "help": "Le mesh che corrispondono a una regola qui non vengono mai duplicate né patchate. Caratteri jolly (*) consentiti, es. \"*\\trees\\*\". Clic destro per aggiungere/rimuovere righe.",
       "column": "Regola"
     },
     "editorIdKeywords": {
-      "label": "Parole chiave EditorID in lista nera",
-      "help": "I record il cui EditorID contiene una di queste parole (senza distinzione tra maiuscole/minuscole) vengono saltati del tutto - utile per escludere falsi positivi. Clic destro per aggiungere/rimuovere righe.",
       "column": "Parola chiave"
     },
     "hideDecalShapes": {

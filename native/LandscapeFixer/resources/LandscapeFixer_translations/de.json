@@ -5,7 +5,6 @@
     "cancel": "Abbrechen"
   },
   "launcher": {
-    "intro": "Durchsucht den Vanilla-Skyrim-SE-Data-Ordner nach jedem Datensatz, dessen EditorID oder Mesh-Pfad \"snow\" enthält, dupliziert das gewinnende Mesh für jeden davon und schreibt ein Plugin, das auf die Duplikate zeigt - so bleiben sie frei bearbeitbar, ohne die Originaldateien zu berühren.",
     "configProfile": {
       "label": "Konfigurationsprofil",
       "load": "Konfiguration laden...",
@@ -57,13 +56,9 @@
       "snowOnly": "Bei den generierten Schnee-Meshes anwenden"
     },
     "meshBlacklist": {
-      "label": "Mesh-Sperrliste",
-      "help": "Meshes, die hier auf eine Regel passen, werden nie dupliziert oder gepatcht. Platzhalter (*) erlaubt, z. B. \"*\\trees\\*\". Rechtsklick zum Hinzufügen/Entfernen von Zeilen.",
       "column": "Regel"
     },
     "editorIdKeywords": {
-      "label": "EditorID-Sperrlisten-Schlüsselwörter",
-      "help": "Datensätze, deren EditorID eines dieser Wörter enthält (Groß-/Kleinschreibung wird ignoriert), werden komplett übersprungen - nützlich, um Fehltreffer auszuschließen. Rechtsklick zum Hinzufügen/Entfernen von Zeilen.",
       "column": "Schlüsselwort"
     },
     "hideDecalShapes": {
