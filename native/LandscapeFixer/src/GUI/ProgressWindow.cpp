@@ -32,7 +32,7 @@ constexpr int POLL_INTERVAL_MS = 150;
 constexpr int WRAP_WIDTH = 340;
 
 // Matches LauncherWindow's own accent colors, so the two windows read as one identity.
-const wxColour ACCENT(30, 111, 168);
+const wxColour ACCENT(40, 128, 138);
 const wxColour ACCENT_TEXT(255, 255, 255);
 
 // LandscapeFixer.NativeExportNE.h declares every [UnmanagedCallersOnly] export as taking/

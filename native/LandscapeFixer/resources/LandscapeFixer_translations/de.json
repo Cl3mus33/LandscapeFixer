@@ -46,8 +46,7 @@
       "label": "Mesh-Vertexfarben",
       "help": "Entfernt eingebrannte Vertexfarben-Tönung auf Meshes im Landscape-Ordner (Felsen, Klippen, Eisberge, ...), einschließlich DLC-Varianten unter DLC01\\Landscape\\, DLC02\\Landscape\\ usw.",
       "none": "Mesh-Vertexfarben nicht anfassen",
-      "snowOnly": "Nur bei den generierten Schnee-Meshes",
-      "all": "Bei allen Landscape-Meshes, einschließlich der ursprünglichen Nicht-Schnee-Meshes"
+      "snowOnly": "Nur bei den generierten Schnee-Meshes"
     },
     "collisionMaterial": {
       "label": "Kollisionsmaterial (Schrittgeräusche)",
@@ -63,7 +62,6 @@
     },
     "hideDecalShapes": {
       "label": "Decal-Formen ausblenden",
-      "checkbox": "Rocks01/SnowRocks01-Formen auf Berg-/Fels-/Tundra-Meshes ausblenden",
       "help": "Vermeidet Z-Fighting mit Skyrims eigenen, auf Decals basierenden dynamischen Schnee-Shadern, indem jede mit „Rocks01“/„SnowRocks01“ texturierte Form ausgeblendet wird - nur auf Berg-/Fels-/Tundra-Meshes. Blendet die Form aus, statt sie zu löschen, sodass keine Änderungen am Plugin nötig sind. Betrifft keine DirtCliffs-Meshes."
     },
     "removeIceSnowMaterial": {

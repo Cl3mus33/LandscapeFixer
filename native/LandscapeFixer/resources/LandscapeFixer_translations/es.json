@@ -46,8 +46,7 @@
       "label": "Colores de vértice de meshes",
       "help": "Elimina el tinte de color de vértice incorporado en los meshes de la carpeta landscape (rocas, acantilados, icebergs, ...), incluyendo variantes de DLC bajo DLC01\\Landscape\\, DLC02\\Landscape\\, etc.",
       "none": "No tocar los colores de vértice de los meshes",
-      "snowOnly": "Solo en los meshes de nieve generados",
-      "all": "En todos los meshes de landscape, incluidos los originales sin nieve"
+      "snowOnly": "Solo en los meshes de nieve generados"
     },
     "collisionMaterial": {
       "label": "Material de Colisión (Sonidos de Pasos)",
@@ -63,7 +62,6 @@
     },
     "hideDecalShapes": {
       "label": "Ocultar formas Decal",
-      "checkbox": "Ocultar formas Rocks01/SnowRocks01 en mallas de montaña/roca/tundra",
       "help": "Evita el z-fighting con los shaders de nieve dinámica propios de Skyrim, basados en el renderizado de decals, ocultando cualquier forma texturizada con «Rocks01»/«SnowRocks01», solo en mallas de montaña/roca/tundra. Oculta la forma en lugar de eliminarla, por lo que no hace falta modificar el plugin. No afecta a las mallas DirtCliffs."
     },
     "removeIceSnowMaterial": {

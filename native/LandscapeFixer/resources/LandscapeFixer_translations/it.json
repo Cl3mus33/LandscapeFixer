@@ -46,8 +46,7 @@
       "label": "Colori vertice delle mesh",
       "help": "Rimuove la tinta dei colori vertice incorporata nelle mesh della cartella landscape (rocce, scogliere, iceberg, ...), incluse le varianti DLC sotto DLC01\\Landscape\\, DLC02\\Landscape\\, ecc.",
       "none": "Non toccare i colori vertice delle mesh",
-      "snowOnly": "Solo sulle mesh di neve generate",
-      "all": "Su tutte le mesh di landscape, incluse le originali non di neve"
+      "snowOnly": "Solo sulle mesh di neve generate"
     },
     "collisionMaterial": {
       "label": "Materiale di Collisione (Suoni dei Passi)",
@@ -63,7 +62,6 @@
     },
     "hideDecalShapes": {
       "label": "Nascondi shape Decal",
-      "checkbox": "Nascondi le shape Rocks01/SnowRocks01 sulle mesh montagne/rocce/tundra",
       "help": "Evita lo z-fighting con gli shader di neve dinamica di Skyrim, anch'essi basati sul rendering decal, nascondendo qualsiasi shape con texture \"Rocks01\"/\"SnowRocks01\", solo sulle mesh montagne/rocce/tundra. Nasconde la shape invece di eliminarla, quindi non è necessaria alcuna modifica al plugin. Non riguarda le mesh DirtCliffs."
     },
     "removeIceSnowMaterial": {

@@ -48,7 +48,7 @@
       "help": "Clears baked-in vertex color tinting on landscape-folder meshes (rocks, cliffs, icebergs, ...), including DLC variants under DLC01\\Landscape\\, DLC02\\Landscape\\, etc.",
       "none": "Don't touch mesh vertex colors",
       "snowOnly": "Only on the generated snow meshes",
-      "all": "On all landscape meshes, including non-snow originals"
+      "all": "On all landscape meshes"
     },
     "collisionMaterial": {
       "label": "Collision Material (Footstep Sounds)",
@@ -68,7 +68,7 @@
     },
     "hideDecalShapes": {
       "label": "Hide Decal Shapes",
-      "checkbox": "Hide Rocks01/SnowRocks01 shapes on mountain/rock/tundra meshes",
+      "checkbox": "Hide Rocks01/SnowRocks01 decal shapes",
       "help": "Avoids z-fighting with Skyrim's own decal-based dynamic snow shaders by hiding any shape textured with \"Rocks01\"/\"SnowRocks01\", on mountain/rock/tundra meshes only. Hides the shape instead of deleting it, so no plugin changes are needed. Does not affect DirtCliffs meshes."
     },
     "removeIceSnowMaterial": {
@@ -79,7 +79,10 @@
     "tab": {
       "general": "General",
       "options": "Options",
-      "blend": "Blend"
+      "blend": "Blend",
+      "setup": "Setup",
+      "landscape": "Landscape",
+      "snow": "Snow"
     },
     "language": {
       "label": "Language"
@@ -141,6 +144,13 @@
       "editButton": "Edit Allowlist...",
       "help": "Only these source diffuse textures (relative to Data, e.g. \"textures\\landscape\\dirt01.dds\") get a missing statics sibling synthesized automatically. Wildcards (*) allowed. Right click to add/remove rows.",
       "column": "Texture"
+    },
+    "subtitle": "Snow and blend fixes for the game's landscape meshes",
+    "setup": {
+      "intro": "Where your game, your mod manager and the output folder are."
+    },
+    "snow": {
+      "intro": "Every record whose EditorID or mesh path says snow gets its own copy of the winning mesh, with the fixes below applied to the copy only. Vertex colors can also be cleared in place on every landscape mesh."
     }
   },
   "progress": {

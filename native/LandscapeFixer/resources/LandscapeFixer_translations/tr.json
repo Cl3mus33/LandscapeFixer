@@ -46,8 +46,7 @@
       "label": "Mesh Vertex Renkleri",
       "help": "Landscape klasöründeki mesh’lere (kayalar, uçurumlar, buzdağları vb.) gömülü vertex renk tonlamasını temizler; buna DLC01\\Landscape\\, DLC02\\Landscape\\ vb. altındaki DLC varyantları da dahildir.",
       "none": "Mesh vertex renklerine dokunma",
-      "snowOnly": "Yalnızca oluşturulan kar mesh’lerinde",
-      "all": "Kar olmayan özgünler dahil tüm landscape mesh’lerinde"
+      "snowOnly": "Yalnızca oluşturulan kar mesh’lerinde"
     },
     "collisionMaterial": {
       "label": "Çarpışma Malzemesi (Ayak Sesi)",
@@ -63,7 +62,6 @@
     },
     "hideDecalShapes": {
       "label": "Decal Shape'leri Gizle",
-      "checkbox": "Dağ/kaya/tundra mesh’lerinde Rocks01/SnowRocks01 shape’lerini gizle",
       "help": "Skyrim’in kendi decal tabanlı dinamik kar shader’larıyla z-fighting’i, dokusu \"Rocks01\"/\"SnowRocks01\" olan her shape’i gizleyerek önler - yalnızca dağ/kaya/tundra mesh’lerinde. Shape’i silmek yerine gizler, bu yüzden eklentide herhangi bir değişiklik gerekmez. DirtCliffs mesh’lerini etkilemez."
     },
     "removeIceSnowMaterial": {

@@ -48,7 +48,7 @@
       "help": "Efface la teinte des vertex colors intégrée aux meshes du dossier landscape (rochers, falaises, icebergs, ...), y compris les variantes DLC sous DLC01\\Landscape\\, DLC02\\Landscape\\, etc.",
       "none": "Ne pas toucher aux vertex colors des meshes",
       "snowOnly": "Uniquement sur les meshes neige générés",
-      "all": "Sur tous les meshes de landscape, y compris les originaux non-neige"
+      "all": "Sur tous les meshes landscape"
     },
     "collisionMaterial": {
       "label": "Matériau de Collision (Sons de Pas)",
@@ -68,7 +68,7 @@
     },
     "hideDecalShapes": {
       "label": "Masquer les shapes Decal",
-      "checkbox": "Masquer les shapes Rocks01/SnowRocks01 sur les meshes montagnes/rochers/toundra",
+      "checkbox": "Masquer les shapes decal Rocks01/SnowRocks01",
       "help": "Évite le z-fighting avec les shaders de neige dynamique de Skyrim, eux-mêmes basés sur le rendu decal, en masquant toute shape texturée avec « Rocks01 »/« SnowRocks01 », uniquement sur les meshes montagnes/rochers/toundra. Masque la shape au lieu de la supprimer, donc aucune modification du plugin n'est nécessaire. N'affecte pas les meshes DirtCliffs."
     },
     "removeIceSnowMaterial": {
@@ -79,7 +79,10 @@
     "tab": {
       "general": "Général",
       "options": "Options",
-      "blend": "Blend"
+      "blend": "Blend",
+      "setup": "Réglages",
+      "landscape": "Landscape",
+      "snow": "Neige"
     },
     "language": {
       "label": "Langue"
@@ -141,6 +144,13 @@
       "editButton": "Modifier la liste...",
       "help": "Seules ces textures diffuse sources (relatives à Data, p. ex. « textures\\landscape\\dirt01.dds ») reçoivent automatiquement un équivalent statics généré. Jokers (*) autorisés. Clic droit pour ajouter/supprimer des lignes.",
       "column": "Texture"
+    },
+    "subtitle": "Correctifs de neige et de blend pour les meshes landscape du jeu",
+    "setup": {
+      "intro": "Où se trouvent votre jeu, votre gestionnaire de mods et le dossier de sortie."
+    },
+    "snow": {
+      "intro": "Chaque record dont l'EditorID ou le chemin de mesh évoque la neige reçoit sa propre copie du mesh gagnant, avec les correctifs ci-dessous appliqués à la copie seulement. Les vertex colors peuvent aussi être effacées en place sur tous les meshes landscape."
     }
   },
   "progress": {
