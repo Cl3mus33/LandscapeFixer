@@ -85,6 +85,7 @@ public sealed class ExtractOrchestrator
     private Mo2InstanceReader? _mo2Reader;
     private static readonly ModKey _outputModKey = new("LandscapeFixer", ModType.Plugin);
     private SkyrimMod _outputMod = null!;
+    private PassContext _ctx = null!;
     private readonly HashSet<string> _usedOutputPaths = new(StringComparer.OrdinalIgnoreCase);
     private readonly List<string> _diagnostics = new();
     private readonly char[] _invalidFileNameChars = Path.GetInvalidFileNameChars();
@@ -328,55 +329,71 @@ public sealed class ExtractOrchestrator
 
         _outputMod = new SkyrimMod(_outputModKey, skyrimRelease);
 
+        _ctx = new PassContext(_settings, _env, _fileProbe, mo2Reader, _outputMod, _dataFolder, _outputFolder,
+            gameRelease, _diagnostics, progress);
+
+        // Blend pass first: it patches the load-order-winning mesh IN PLACE at its vanilla path
+        // (into the output folder) and assigns derived TextureSets; the snow pass then copies from
+        // that patched mesh and builds on the very same override records.
+        var blendResult = new BlendPassResult(0, 0, 0, 0);
+        if (_settings.EnableBlend)
+        {
+            blendResult = new BlendPass(_ctx).Run();
+        }
+
         Report("Scanning records...");
 
-        ProcessType<IStaticGetter>(
-            _env.LoadOrder.PriorityOrder.WinningOverrides<IStaticGetter>(),
-            r => r.EditorID,
-            r => r.Model?.File.GivenPath,
-            r => r.Model?.AlternateTextures,
-            r => _outputMod.Statics.GetOrAddAsOverride(r).Model!,
-            "Static", Report);
+        if (_settings.EnableSnow)
+        {
+            ProcessType<IStaticGetter>(
+                _env.LoadOrder.PriorityOrder.WinningOverrides<IStaticGetter>(),
+                r => r.EditorID,
+                r => r.Model?.File.GivenPath,
+                r => r.Model?.AlternateTextures,
+                r => _outputMod.Statics.GetOrAddAsOverride(r).Model!,
+                "Static", Report);
 
-        ProcessType<IMoveableStaticGetter>(
-            _env.LoadOrder.PriorityOrder.WinningOverrides<IMoveableStaticGetter>(),
-            r => r.EditorID,
-            r => r.Model?.File.GivenPath,
-            r => r.Model?.AlternateTextures,
-            r => _outputMod.MoveableStatics.GetOrAddAsOverride(r).Model!,
-            "MoveableStatic", Report);
+            ProcessType<IMoveableStaticGetter>(
+                _env.LoadOrder.PriorityOrder.WinningOverrides<IMoveableStaticGetter>(),
+                r => r.EditorID,
+                r => r.Model?.File.GivenPath,
+                r => r.Model?.AlternateTextures,
+                r => _outputMod.MoveableStatics.GetOrAddAsOverride(r).Model!,
+                "MoveableStatic", Report);
 
-        ProcessType<IFloraGetter>(
-            _env.LoadOrder.PriorityOrder.WinningOverrides<IFloraGetter>(),
-            r => r.EditorID,
-            r => r.Model?.File.GivenPath,
-            r => r.Model?.AlternateTextures,
-            r => _outputMod.Florae.GetOrAddAsOverride(r).Model!,
-            "Flora", Report);
+            ProcessType<IFloraGetter>(
+                _env.LoadOrder.PriorityOrder.WinningOverrides<IFloraGetter>(),
+                r => r.EditorID,
+                r => r.Model?.File.GivenPath,
+                r => r.Model?.AlternateTextures,
+                r => _outputMod.Florae.GetOrAddAsOverride(r).Model!,
+                "Flora", Report);
 
-        ProcessType<IFurnitureGetter>(
-            _env.LoadOrder.PriorityOrder.WinningOverrides<IFurnitureGetter>(),
-            r => r.EditorID,
-            r => r.Model?.File.GivenPath,
-            r => r.Model?.AlternateTextures,
-            r => _outputMod.Furniture.GetOrAddAsOverride(r).Model!,
-            "Furniture", Report);
+            ProcessType<IFurnitureGetter>(
+                _env.LoadOrder.PriorityOrder.WinningOverrides<IFurnitureGetter>(),
+                r => r.EditorID,
+                r => r.Model?.File.GivenPath,
+                r => r.Model?.AlternateTextures,
+                r => _outputMod.Furniture.GetOrAddAsOverride(r).Model!,
+                "Furniture", Report);
 
-        ProcessType<IDoorGetter>(
-            _env.LoadOrder.PriorityOrder.WinningOverrides<IDoorGetter>(),
-            r => r.EditorID,
-            r => r.Model?.File.GivenPath,
-            r => r.Model?.AlternateTextures,
-            r => _outputMod.Doors.GetOrAddAsOverride(r).Model!,
-            "Door", Report);
+            ProcessType<IDoorGetter>(
+                _env.LoadOrder.PriorityOrder.WinningOverrides<IDoorGetter>(),
+                r => r.EditorID,
+                r => r.Model?.File.GivenPath,
+                r => r.Model?.AlternateTextures,
+                r => _outputMod.Doors.GetOrAddAsOverride(r).Model!,
+                "Door", Report);
 
-        ProcessType<IContainerGetter>(
-            _env.LoadOrder.PriorityOrder.WinningOverrides<IContainerGetter>(),
-            r => r.EditorID,
-            r => r.Model?.File.GivenPath,
-            r => r.Model?.AlternateTextures,
-            r => _outputMod.Containers.GetOrAddAsOverride(r).Model!,
-            "Container", Report);
+            ProcessType<IContainerGetter>(
+                _env.LoadOrder.PriorityOrder.WinningOverrides<IContainerGetter>(),
+                r => r.EditorID,
+                r => r.Model?.File.GivenPath,
+                r => r.Model?.AlternateTextures,
+                r => _outputMod.Containers.GetOrAddAsOverride(r).Model!,
+                "Container", Report);
+
+        }
 
         if (_settings.RemoveIceSnowMaterial)
         {
@@ -480,6 +497,9 @@ public sealed class ExtractOrchestrator
             _iceSnowMaterialsRemoved,
             _nonSnowLandscapeMeshesIncluded,
             _landscapesPatched,
+            blendResult.MeshesPatchedInPlace,
+            blendResult.TextureSetsCreated,
+            blendResult.AlternateTexturesAssigned,
             _diagnostics,
             espPath);
 
@@ -508,6 +528,9 @@ public sealed class ExtractOrchestrator
             $"Ice statics with their snow Material Object removed: {result.IceSnowMaterialsRemoved}",
             $"Non-snow landscape meshes also included for vertex color/collision fixups: {result.NonSnowLandscapeMeshesIncluded}",
             $"Landscape records with vertex colors cleared: {result.LandscapesPatched}",
+            $"Blend: meshes patched in place: {result.BlendMeshesPatched}",
+            $"Blend: TextureSets created: {result.BlendTextureSetsCreated}",
+            $"Blend: Alternate Textures assigned: {result.BlendAlternateTexturesAssigned}",
             $"Plugin written: {espPath}",
             "",
             $"{result.Diagnostics.Count} diagnostic(s):",
@@ -518,6 +541,16 @@ public sealed class ExtractOrchestrator
 
     private bool TryResolveMesh(string relativeMeshPath, out Stream? stream)
     {
+        // A mesh the blend pass already patched in place sits in the output folder at its vanilla
+        // path and wins over the loose/archived original: the snow copy must carry that patch too.
+        // Read into memory: the copy may be written back onto this very path (EditorID == file name).
+        var patchedPath = Path.Combine(_outputFolder, "meshes", relativeMeshPath);
+        if (File.Exists(patchedPath))
+        {
+            stream = new MemoryStream(File.ReadAllBytes(patchedPath));
+            return true;
+        }
+
         var archiveRelative = Path.Combine("meshes", relativeMeshPath);
         if (_fileProbe.Exists(archiveRelative))
         {
@@ -1279,6 +1312,7 @@ public sealed class ExtractOrchestrator
             }
 
             if (modelPath is null
+                || !_ctx.Scope.IsInScope(modelPath)
                 || _blacklist.IsMeshBlacklisted(modelPath)
                 || _blacklist.IsEditorIdBlacklisted(editorId ?? string.Empty))
             {

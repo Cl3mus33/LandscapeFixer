@@ -13,5 +13,8 @@ public sealed record ExtractResult(
     int IceSnowMaterialsRemoved,
     int NonSnowLandscapeMeshesIncluded,
     int LandscapesPatched,
+    int BlendMeshesPatched,
+    int BlendTextureSetsCreated,
+    int BlendAlternateTexturesAssigned,
     IReadOnlyList<string> Diagnostics,
     string? OutputEspPath);

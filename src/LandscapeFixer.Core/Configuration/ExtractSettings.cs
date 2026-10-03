@@ -116,4 +116,59 @@ public sealed class ExtractSettings
     /// name only, "glacier" rules out glacier-specific records that aren't real candidates for
     /// this tool's own snow-mesh fixes.</summary>
     public List<string> EditorIdBlacklistKeywords { get; set; } = new() { "marker", "glacier", "lod", "ice", "frozen", "icicle" };
+    // ---- Landscape scope (shared by the blend and the snow pass) ----
+
+    /// <summary>When true (default), only meshes living in a landscape folder of the game - any path
+    /// with a "landscape" folder segment: meshes\landscape\, meshes\dlc01\landscape\,
+    /// meshes\_resourcepack\landscape\, ... - are ever processed, by either pass. Everything else
+    /// (architecture terrain bases, campfires, furniture, ...) is left alone unless it matches
+    /// <see cref="MeshAddList"/>.</summary>
+    public bool RestrictToLandscapeFolders { get; set; } = true;
+
+    /// <summary>Wildcard path patterns (same syntax as the blacklists) of meshes OUTSIDE a landscape
+    /// folder that must be processed anyway, e.g. "*\whiterun\wrterrain\*". Only used while
+    /// <see cref="RestrictToLandscapeFolders"/> is on.</summary>
+    public List<string> MeshAddList { get; set; } = new();
+
+    // ---- Blend pass (alpha test -> alpha blend, statics/blend TextureSets) ----
+
+    /// <summary>Runs the blend pass: alpha test to blend on landscape meshes, derived "blend"
+    /// TextureSets and Alternate Textures, PBRNifPatcher / PBRTextureSets json.</summary>
+    public bool EnableBlend { get; set; } = true;
+
+    /// <summary>Runs the snow pass: snow records get their own mesh copy and plugin override.</summary>
+    public bool EnableSnow { get; set; } = true;
+
+    public List<LandscapeFolderRule> LandscapeFolderRules { get; set; } = LandscapeFolderRule.Defaults.ToList();
+
+    /// <summary>Meshes matching one of these are never touched by the blend pass (glass, ice, ...).
+    /// The snow pass has its own list, <see cref="MeshBlacklist"/>.</summary>
+    public List<string> BlendMeshBlacklist { get; set; } = new()
+    {
+        @"*\glass\*",
+        @"*\ice\*",
+        @"*\trees\*",
+        @"*\actors\*",
+        @"*\roads\*",
+        @"*\effects\*",
+        @"*\magic\*",
+        @"*\weapons\*",
+    };
+
+    /// <summary>Records whose EditorID contains one of these are never touched by the blend pass.</summary>
+    public List<string> BlendEditorIdBlacklistKeywords { get; set; } = new()
+    {
+        "ice", "frozen", "glass", "unique", "wet", "road", "cave", "mine",
+    };
+
+    /// <summary>Template for generated TextureSet EditorIDs: {Type} and {Name} tokens.</summary>
+    public string TextureSetNamingTemplate { get; set; } = "{Type}{Name}";
+
+    /// <summary>Synthesizes a missing statics/blend sibling for an allowlisted landscape texture.</summary>
+    public bool AutoGenerateMissingStatics { get; set; } = true;
+
+    /// <summary>Also generates a PBR sibling (Height/RMAOS) for textures that have none.</summary>
+    public bool GeneratePbrSlots { get; set; }
+
+    public List<string> AutoGenerateAllowlist { get; set; } = AutoGenerateAllowlistDefaults.Values.ToList();
 }
