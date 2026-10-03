@@ -11,7 +11,7 @@ public sealed record ExtractResult(
     int DecalShapesHidden,
     int DecalCompanionShapesRetextured,
     int IceSnowMaterialsRemoved,
-    int NonSnowLandscapeMeshesIncluded,
+    int VertexColorMeshesPatchedInPlace,
     int LandscapesPatched,
     int BlendMeshesPatched,
     int BlendTextureSetsCreated,

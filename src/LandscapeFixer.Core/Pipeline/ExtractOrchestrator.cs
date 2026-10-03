@@ -101,7 +101,7 @@ public sealed class ExtractOrchestrator
     private int _decalCompanionShapesRetextured;
     private int _iceSnowMaterialsRemoved;
     private int _itmOverridesRemoved;
-    private int _nonSnowLandscapeMeshesIncluded;
+    private int _vertexColorMeshesPatchedInPlace;
     private int _landscapesPatched;
 
     public ExtractOrchestrator(ExtractSettings settings)
@@ -495,7 +495,7 @@ public sealed class ExtractOrchestrator
             _decalShapesHidden,
             _decalCompanionShapesRetextured,
             _iceSnowMaterialsRemoved,
-            _nonSnowLandscapeMeshesIncluded,
+            _vertexColorMeshesPatchedInPlace,
             _landscapesPatched,
             blendResult.MeshesPatchedInPlace,
             blendResult.TextureSetsCreated,
@@ -526,7 +526,7 @@ public sealed class ExtractOrchestrator
             $"Decal shapes hidden: {result.DecalShapesHidden}",
             $"Decal companion shapes retextured to snow: {result.DecalCompanionShapesRetextured}",
             $"Ice statics with their snow Material Object removed: {result.IceSnowMaterialsRemoved}",
-            $"Non-snow landscape meshes also included for vertex color/collision fixups: {result.NonSnowLandscapeMeshesIncluded}",
+            $"Landscape meshes with vertex colors cleared in place (at their vanilla path): {result.VertexColorMeshesPatchedInPlace}",
             $"Landscape records with vertex colors cleared: {result.LandscapesPatched}",
             $"Blend: meshes patched in place: {result.BlendMeshesPatched}",
             $"Blend: TextureSets created: {result.BlendTextureSetsCreated}",
@@ -1076,6 +1076,44 @@ public sealed class ExtractOrchestrator
     // RGB=(1,1,1) with alpha preserved bit-for-bit. Only called by ProcessType for meshes under a
     // "Landscape" folder (see IsLandscapeMesh) - non-landscape snow matches (e.g. DLC01's Snow Elf
     // ruins architecture) keep their original vertex colors.
+    private readonly HashSet<string> _vertexColorsInPlaceDone = new(StringComparer.OrdinalIgnoreCase);
+
+    // Clears the vertex colors of a mesh at its own vanilla path in the output folder: the load-order
+    // winner (or the blend pass's already patched version of it) is written there first, then edited,
+    // and removed again when it had nothing to clear. Once per mesh, whatever number of records use it.
+    private void NeutralizeVertexColorsInPlace(string meshRelativePath, string label)
+    {
+        if (!_vertexColorsInPlaceDone.Add(meshRelativePath))
+        {
+            return;
+        }
+
+        var outputPath = Path.Combine(_outputFolder, "meshes", meshRelativePath);
+        var alreadyInOutput = File.Exists(outputPath);
+        if (!TryResolveMesh(meshRelativePath, out var stream) || stream is null)
+        {
+            _diagnostics.Add($"Mesh not found (loose or archived): meshes\\{meshRelativePath}");
+            _meshesFailed++;
+            return;
+        }
+
+        using (stream)
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(outputPath)!);
+            using var dest = File.Create(outputPath);
+            stream.CopyTo(dest);
+        }
+
+        if (NeutralizeVertexColors(meshRelativePath, label))
+        {
+            _vertexColorMeshesPatchedInPlace++;
+        }
+        else if (!alreadyInOutput)
+        {
+            File.Delete(outputPath);
+        }
+    }
+
     private bool NeutralizeVertexColors(string duplicatedRelativePath, string label)
     {
         var fullPath = Path.Combine(_outputFolder, "meshes", duplicatedRelativePath);
@@ -1334,38 +1372,17 @@ public sealed class ExtractOrchestrator
                 isSnowMatch = false;
             }
 
-            // MeshVertexColorMode.All additionally pulls in every OTHER landscape-folder mesh
-            // (rocks, cliffs, ... that never matched "snow" on their own) purely so its vertex
-            // colors can be cleared too - see MeshVertexColorMode's own doc comment for why.
-            // CollisionMaterialMode has no equivalent "All" option - duplicating a non-snow mesh
-            // purely to fix its collision material (with no other visible change) wasn't judged
-            // worth the extra mesh, so collision remapping only ever happens below, for meshes
-            // already being duplicated for the snow match itself.
-            var landscapeOnlyInclusion = !isSnowMatch
-                && isLandscape
-                && _settings.MeshVertexColorMode == MeshVertexColorMode.All;
-
-            if (!isSnowMatch && !landscapeOnlyInclusion)
+            // MeshVertexColorMode.All applies to EVERY landscape-folder mesh, snow or not: it is done IN
+            // PLACE, once per mesh, on the load-order winner at its own vanilla path (like the blend pass
+            // does), so there is no copy and no per-record mesh. Only the "snow meshes only" mode needs
+            // a copy, because the other users of the same mesh must keep their vertex colors.
+            if (isLandscape && _settings.MeshVertexColorMode == MeshVertexColorMode.All)
             {
-                continue;
+                NeutralizeVertexColorsInPlace(modelPath, editorId ?? modelPath);
             }
 
-            if (landscapeOnlyInclusion)
+            if (!isSnowMatch)
             {
-                var lsDuplicatedPath = DuplicateMesh(modelPath, editorId, fallbackSuffix: "_novc");
-                if (lsDuplicatedPath is null)
-                {
-                    continue;
-                }
-
-                var lsOverrideModel = getOrAddOverrideModel(record);
-                lsOverrideModel.File = lsDuplicatedPath;
-
-                // The record keeps its own Alternate Textures untouched and the copy keeps the
-                // mesh's own embedded texture paths: a copy only exists for the structural edit
-                // below, texture handling stays exactly what vanilla (and PG Patcher) expects.
-                NeutralizeVertexColors(lsDuplicatedPath, editorId ?? modelPath);
-                _nonSnowLandscapeMeshesIncluded++;
                 continue;
             }
 
@@ -1382,7 +1399,7 @@ public sealed class ExtractOrchestrator
             // and the copy keeps the mesh's own embedded texture paths, as in vanilla.
 
             ApplyAlphaShaderFixups(duplicatedPath, editorId ?? modelPath);
-            if (isLandscape && _settings.MeshVertexColorMode != MeshVertexColorMode.None)
+            if (isLandscape && _settings.MeshVertexColorMode == MeshVertexColorMode.SnowOnly)
             {
                 NeutralizeVertexColors(duplicatedPath, editorId ?? modelPath);
             }
