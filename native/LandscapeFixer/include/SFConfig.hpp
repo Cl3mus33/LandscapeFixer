@@ -82,16 +82,14 @@ struct SFParams {
     /// LandscapeFixer.Core.Configuration.ExtractSettings.MeshBlacklist for the reasoning behind each
     /// entry; both sides must stay in lockstep.
     std::vector<std::wstring> meshBlacklist {
-        LR"(*\trees\*)",   LR"(*\ice\*)",     LR"(*\effects\*)",
-        LR"(*\weapons\*)", LR"(*\trophy\*)",  LR"(*\snowelfruins\*)",
-        LR"(*\wet\*)",     LR"(*\lod\*)",     LR"(*\glaciers\*)",
+        LR"(*\trees\*)", LR"(*\ice\*)", LR"(*\icebergs\*)", LR"(*\glaciers\*)", LR"(*\wet\*)", LR"(*\lod\*)",
     };
     /// @brief Records whose EditorID contains one of these words (case-insensitive) are skipped
     /// entirely. Defaults refined through real use - see
     /// LandscapeFixer.Core.Configuration.ExtractSettings.EditorIdBlacklistKeywords for the reasoning;
     /// both sides must stay in lockstep.
     std::vector<std::wstring> editorIdBlacklistKeywords {
-        L"marker", L"glacier", L"lod", L"ice", L"frozen", L"icicle",
+        L"glacier", L"ice", L"frozen", L"icicle",
     };
 
     /// @brief Hides (rather than deletes) any shape flagged Decal/Dynamic_Decal, so it no longer
@@ -117,12 +115,11 @@ struct SFParams {
     /// @brief Meshes matching these are never touched by the blend pass. See
     /// LandscapeFixer.Core.Configuration.ExtractSettings.BlendMeshBlacklist - both sides must stay in lockstep.
     std::vector<std::wstring> blendMeshBlacklist {
-        LR"(*\glass\*)", LR"(*\ice\*)",     LR"(*\trees\*)", LR"(*\actors\*)",
-        LR"(*\roads\*)", LR"(*\effects\*)", LR"(*\magic\*)", LR"(*\weapons\*)",
+        LR"(*\trees\*)", LR"(*\ice\*)", LR"(*\icebergs\*)", LR"(*\glaciers\*)", LR"(*\roads\*)", LR"(*\plants\*)",
     };
     /// @brief Records whose EditorID contains one of these are never touched by the blend pass.
     std::vector<std::wstring> blendEditorIdBlacklistKeywords {
-        L"ice", L"frozen", L"glass", L"unique", L"wet", L"road", L"cave", L"mine",
+        L"ice", L"frozen", L"unique", L"wet", L"road", L"cave", L"mine",
     };
 
     /// @brief Also generates a PBR sibling (Height/RMAOS) for landscape textures that have none.

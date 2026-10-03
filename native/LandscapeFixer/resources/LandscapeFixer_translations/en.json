@@ -5,7 +5,7 @@
     "cancel": "Cancel"
   },
   "launcher": {
-    "intro": "Fixes the landscape meshes of your load order: alpha test becomes alpha blend with derived \"blend\" TextureSets (Blend), and every snow record gets its own mesh copy with the snow fixes applied (Snow). Only meshes inside a landscape folder are touched, everything is written to one plugin, and PG Patcher is left to do the PBR conversion afterwards.",
+    "intro": "What Landscape Fixer is allowed to touch: only meshes inside a landscape folder, plus the vertex color clean-up of the terrain and of its meshes. The Blend and Snow tabs hold the options of each pass; everything is written to one plugin, and PG Patcher is left to do the PBR conversion afterwards.",
     "configProfile": {
       "label": "Config Profile",
       "load": "Load Config...",
@@ -111,9 +111,8 @@
       "title": "Missing MO2 Profile"
     },
     "passes": {
-      "label": "Passes",
-      "blend": "Blend: alpha test to alpha blend on landscape meshes, with derived \"blend\" TextureSets",
-      "snow": "Snow: a mesh copy and a plugin override for every snow record"
+      "blend": "Run the Blend pass",
+      "snow": "Run the Snow pass"
     },
     "scope": {
       "label": "Landscape Scope",
@@ -130,7 +129,7 @@
     },
     "blendMeshBlacklist": {
       "label": "Blend Mesh Blacklist",
-      "help": "Meshes matching a rule here are never patched by the blend pass (glass, ice, ...). Wildcards (*) allowed. Right click to add/remove rows."
+      "help": "Meshes matching a rule here are never patched by the blend pass (ice, roads, trees, ...). Wildcards (*) allowed. Right click to add/remove rows."
     },
     "blendEditorIdKeywords": {
       "label": "Blend EditorID Blacklist Keywords",
@@ -150,7 +149,7 @@
       "intro": "Where your game, your mod manager and the output folder are."
     },
     "snow": {
-      "intro": "Every record whose EditorID or mesh path says snow gets its own copy of the winning mesh, with the fixes below applied to the copy only. Vertex colors can also be cleared in place on every landscape mesh."
+      "intro": "Every record whose EditorID or mesh path says snow can get its own copy of the winning mesh, with the fixes below applied to the copy only - the copy is kept only when something in the mesh actually changed, otherwise the record stays untouched."
     }
   },
   "progress": {

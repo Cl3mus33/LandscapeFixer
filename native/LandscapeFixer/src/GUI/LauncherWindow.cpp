@@ -168,20 +168,23 @@ LauncherWindow::LauncherWindow(const SFParams& initParams, filesystem::path exeP
 
     auto* landscapeIntroText = new wxStaticText(landscapePanel, wxID_ANY,
         SFTr("launcher.intro",
-            "Fixes the landscape meshes of your load order: alpha test becomes alpha blend with derived "
-            "\"blend\" TextureSets (Blend), and every snow record gets its own mesh copy with the snow "
-            "fixes applied (Snow). Only meshes inside a landscape folder are touched, everything is written "
-            "to one plugin, and PG Patcher is left to do the PBR conversion afterwards."));
+            "What Landscape Fixer is allowed to touch: only meshes inside a landscape folder, plus the vertex "
+            "color clean-up of the terrain and of its meshes. The Blend and Snow tabs hold the options of each "
+            "pass; everything is written to one plugin, and PG Patcher is left to do the PBR conversion afterwards."));
     landscapeIntroText->Wrap(500);
     landscapeSizer->Add(landscapeIntroText, 0, wxALL, BORDER_SIZE * 2);
 
     auto* snowIntroText = new wxStaticText(snowPanel, wxID_ANY,
         SFTr("launcher.snow.intro",
-            "Every record whose EditorID or mesh path says snow gets its own copy of the winning mesh, "
-            "with the fixes below applied to the copy only. Vertex colors can also be cleared in place on "
-            "every landscape mesh."));
+            "Every record whose EditorID or mesh path says snow can get its own copy of the winning mesh, with "
+            "the fixes below applied to the copy only - the copy is kept only when something in the mesh "
+            "actually changed, otherwise the record stays untouched."));
     snowIntroText->Wrap(500);
     snowSizer->Add(snowIntroText, 0, wxALL, BORDER_SIZE * 2);
+
+    m_enableSnowCheckbox = new wxCheckBox(snowPanel, wxID_ANY, SFTr("launcher.passes.snow", "Run the Snow pass"));
+    m_enableSnowCheckbox->SetValue(initParams.enableSnow);
+    snowSizer->Add(m_enableSnowCheckbox, 0, wxLEFT | wxRIGHT | wxBOTTOM, BORDER_SIZE * 2);
 
     // Config profile - a single install (e.g. shared outside any one modlist) can still keep
     // distinct settings per modlist by saving/loading separate JSON files here, instead of relying
@@ -285,19 +288,6 @@ LauncherWindow::LauncherWindow(const SFParams& initParams, filesystem::path exeP
     // scope is the game's own landscape folders (any "landscape" folder segment: Meshes\Landscape,
     // Meshes\DLC01\Landscape, ...); meshes outside them (architecture terrain bases, campfires,
     // furniture, ...) are left alone unless they match one of the additional-mesh wildcards.
-    landscapeSizer->Add(makeSectionLabel(landscapePanel, SFTr("launcher.passes.label", "Passes")), 0,
-        wxLEFT | wxRIGHT | wxTOP, BORDER_SIZE);
-
-    m_enableBlendCheckbox = new wxCheckBox(landscapePanel, wxID_ANY,
-        SFTr("launcher.passes.blend", "Blend: alpha test to alpha blend on landscape meshes, with derived \"blend\" TextureSets"));
-    m_enableBlendCheckbox->SetValue(initParams.enableBlend);
-    landscapeSizer->Add(m_enableBlendCheckbox, 0, wxLEFT | wxTOP, BORDER_SIZE * 2);
-
-    m_enableSnowCheckbox = new wxCheckBox(landscapePanel, wxID_ANY,
-        SFTr("launcher.passes.snow", "Snow: a mesh copy and a plugin override for every snow record"));
-    m_enableSnowCheckbox->SetValue(initParams.enableSnow);
-    landscapeSizer->Add(m_enableSnowCheckbox, 0, wxLEFT | wxTOP, BORDER_SIZE * 2);
-
     landscapeSizer->Add(makeSectionLabel(landscapePanel, SFTr("launcher.scope.label", "Landscape Scope")), 0,
         wxLEFT | wxRIGHT | wxTOP, BORDER_SIZE * 2);
 
@@ -335,21 +325,21 @@ LauncherWindow::LauncherWindow(const SFParams& initParams, filesystem::path exeP
     auto* landscapeColumnSizer = new wxBoxSizer(wxVERTICAL);
     auto* meshVertexColumnSizer = new wxBoxSizer(wxVERTICAL);
 
-    landscapeColumnSizer->Add(makeSectionLabel(snowPanel, SFTr("launcher.landscapeVertexColors.label", "Landscape Vertex Colors")), 0,
+    landscapeColumnSizer->Add(makeSectionLabel(landscapePanel, SFTr("launcher.landscapeVertexColors.label", "Landscape Vertex Colors")), 0,
         wxTOP, BORDER_SIZE);
 
-    auto* landscapeHelpText = new wxStaticText(snowPanel, wxID_ANY,
+    auto* landscapeHelpText = new wxStaticText(landscapePanel, wxID_ANY,
         SFTr("launcher.landscapeVertexColors.help",
             "Clears baked-in vertex color tinting on terrain (LAND) records, so they render "
             "standalone instead of carrying leftover color grading meant for a different look."));
     landscapeHelpText->Wrap(HELP_WRAP_PAIRED);
     landscapeColumnSizer->Add(landscapeHelpText, 0, wxTOP, BORDER_SIZE);
 
-    m_landscapeModeNoneRadio = new wxRadioButton(snowPanel, wxID_ANY,
+    m_landscapeModeNoneRadio = new wxRadioButton(landscapePanel, wxID_ANY,
         SFTr("launcher.landscapeVertexColors.none", "Don't touch landscape vertex colors"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP);
-    m_landscapeModeAllRadio = new wxRadioButton(snowPanel, wxID_ANY,
+    m_landscapeModeAllRadio = new wxRadioButton(landscapePanel, wxID_ANY,
         SFTr("launcher.landscapeVertexColors.all", "Clear on all terrain"));
-    m_landscapeModeSnowRadio = new wxRadioButton(snowPanel, wxID_ANY,
+    m_landscapeModeSnowRadio = new wxRadioButton(landscapePanel, wxID_ANY,
         SFTr("launcher.landscapeVertexColors.snow", "Clear only where a snow-classified texture is used"));
 
     switch (initParams.landscapeVertexColorMode) {
@@ -373,10 +363,10 @@ LauncherWindow::LauncherWindow(const SFParams& initParams, filesystem::path exeP
     // terrain records. "All" additionally duplicates non-snow landscape meshes purely to clear their
     // vertex colors too, so terrain and the object meshes sitting on it stay visually consistent
     // once the terrain's own vertex colors are cleared above.
-    meshVertexColumnSizer->Add(makeSectionLabel(snowPanel, SFTr("launcher.meshVertexColors.label", "Mesh Vertex Colors")), 0,
+    meshVertexColumnSizer->Add(makeSectionLabel(landscapePanel, SFTr("launcher.meshVertexColors.label", "Mesh Vertex Colors")), 0,
         wxTOP, BORDER_SIZE);
 
-    auto* meshVertexColorsHelpText = new wxStaticText(snowPanel, wxID_ANY,
+    auto* meshVertexColorsHelpText = new wxStaticText(landscapePanel, wxID_ANY,
         SFTr("launcher.meshVertexColors.help",
             "Clears baked-in vertex color tinting on landscape-folder meshes (rocks, cliffs, "
             "icebergs, ...), including DLC variants under DLC01\\Landscape\\, DLC02\\Landscape\\, "
@@ -384,11 +374,11 @@ LauncherWindow::LauncherWindow(const SFParams& initParams, filesystem::path exeP
     meshVertexColorsHelpText->Wrap(HELP_WRAP_PAIRED);
     meshVertexColumnSizer->Add(meshVertexColorsHelpText, 0, wxTOP, BORDER_SIZE);
 
-    m_meshVertexColorModeNoneRadio = new wxRadioButton(snowPanel, wxID_ANY,
+    m_meshVertexColorModeNoneRadio = new wxRadioButton(landscapePanel, wxID_ANY,
         SFTr("launcher.meshVertexColors.none", "Don't touch mesh vertex colors"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP);
-    m_meshVertexColorModeSnowOnlyRadio = new wxRadioButton(snowPanel, wxID_ANY,
+    m_meshVertexColorModeSnowOnlyRadio = new wxRadioButton(landscapePanel, wxID_ANY,
         SFTr("launcher.meshVertexColors.snowOnly", "Only on the generated snow meshes"));
-    m_meshVertexColorModeAllRadio = new wxRadioButton(snowPanel, wxID_ANY,
+    m_meshVertexColorModeAllRadio = new wxRadioButton(landscapePanel, wxID_ANY,
         SFTr("launcher.meshVertexColors.all", "On all landscape meshes"));
 
     switch (initParams.meshVertexColorMode) {
@@ -409,7 +399,7 @@ LauncherWindow::LauncherWindow(const SFParams& initParams, filesystem::path exeP
 
     vertexColorsRowSizer->Add(landscapeColumnSizer, 1, wxEXPAND | wxLEFT | wxRIGHT, BORDER_SIZE);
     vertexColorsRowSizer->Add(meshVertexColumnSizer, 1, wxEXPAND | wxLEFT | wxRIGHT, BORDER_SIZE);
-    snowSizer->Add(vertexColorsRowSizer, 0, wxEXPAND);
+    landscapeSizer->Add(vertexColorsRowSizer, 0, wxEXPAND);
 
     // Collision material mode - remaps collision materials on the generated snow meshes toward
     // their snow equivalent (currently just DIRT/GRASS -> SNOW, kept deliberately conservative) so
@@ -581,6 +571,10 @@ LauncherWindow::LauncherWindow(const SFParams& initParams, filesystem::path exeP
     blendIntroText->Wrap(500);
     blendSizer->Add(blendIntroText, 0, wxALL, BORDER_SIZE * 2);
 
+    m_enableBlendCheckbox = new wxCheckBox(blendPanel, wxID_ANY, SFTr("launcher.passes.blend", "Run the Blend pass"));
+    m_enableBlendCheckbox->SetValue(initParams.enableBlend);
+    blendSizer->Add(m_enableBlendCheckbox, 0, wxLEFT | wxRIGHT | wxBOTTOM, BORDER_SIZE * 2);
+
     m_generatePbrSlotsCheckbox = new wxCheckBox(blendPanel, wxID_ANY,
         SFTr("launcher.generatePbrSlots.label", "Generate PBR slots"));
     m_generatePbrSlotsCheckbox->SetValue(initParams.generatePbrSlots);
@@ -622,7 +616,7 @@ LauncherWindow::LauncherWindow(const SFParams& initParams, filesystem::path exeP
     blendMeshColumnSizer->Add(makeSectionLabel(blendPanel, SFTr("launcher.blendMeshBlacklist.label", "Blend Mesh Blacklist")), 0, wxTOP, BORDER_SIZE);
     auto* blendMeshHelpText = new wxStaticText(blendPanel, wxID_ANY,
         SFTr("launcher.blendMeshBlacklist.help",
-            "Meshes matching a rule here are never patched by the blend pass (glass, ice, ...). Wildcards (*) "
+            "Meshes matching a rule here are never patched by the blend pass (ice, roads, trees, ...). Wildcards (*) "
             "allowed. Right click to add/remove rows."));
     blendMeshHelpText->Wrap(HELP_WRAP_BLEND);
     blendMeshColumnSizer->Add(blendMeshHelpText, 0, wxTOP, BORDER_SIZE);

@@ -16,5 +16,6 @@ public sealed record ExtractResult(
     int BlendMeshesPatched,
     int BlendTextureSetsCreated,
     int BlendAlternateTexturesAssigned,
+    int SnowRecordsWithoutCopy,
     IReadOnlyList<string> Diagnostics,
     string? OutputEspPath);

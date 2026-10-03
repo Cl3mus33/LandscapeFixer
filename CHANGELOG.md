@@ -17,6 +17,11 @@ The history of the two tools this one replaces lives in their own repositories
   allowlist, blacklists).
 
 ### Changed
+- A snow record only gets a mesh copy (and a plugin override) when one of the snow fixes actually
+  changed something in its mesh; otherwise the copy is dropped and the record is left alone. On the
+  test load order with collision remapping and decal hiding on, 126 copies instead of 232.
+- The default mesh blacklists were trimmed to what exists under the landscape folders (blend: trees,
+  ice, icebergs, glaciers, roads, plants; snow: trees, ice, icebergs, glaciers, wet, lod).
 - "Clear vertex colors on all landscape meshes" is now done in place, once per mesh, on the winning
   mesh at its own vanilla path - no more one copy per record (1166 fewer meshes on the test load
   order). "Only on the generated snow meshes" still uses the snow copies.

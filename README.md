@@ -29,10 +29,11 @@ Two passes share one scan of your load order and one output plugin:
 
 ### Snow (formerly Snow Fixer)
 
-- Gives every **snow record** its own copy of the winning mesh (named after the record, next to the
-  original) and points the record at it, with the snow fixes applied to the copy only. A copy keeps the
-  texture paths of the mesh it came from and the record keeps its own Alternate Textures, exactly as in
-  vanilla.
+- Gives a **snow record** its own copy of the winning mesh (named after the record, next to the
+  original) and points the record at it, with the snow fixes applied to the copy only - but **only when
+  one of those fixes actually changes something in that mesh**. Otherwise the copy is dropped and the
+  record stays untouched. A copy keeps the texture paths of the mesh it came from and the record keeps
+  its own Alternate Textures, exactly as in vanilla.
 - **Clears baked vertex color tinting** on terrain (LAND) records and on landscape meshes: only where a
   snow-classified texture is involved, or everywhere. "Everywhere" on meshes is done in place on the
   winning mesh, once per mesh, with no extra copies. LAND records that a mod deliberately repainted are

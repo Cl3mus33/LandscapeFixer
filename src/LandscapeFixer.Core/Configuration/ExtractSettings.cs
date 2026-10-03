@@ -97,13 +97,10 @@ public sealed class ExtractSettings
     {
         @"*\trees\*",
         @"*\ice\*",
-        @"*\effects\*",
-        @"*\weapons\*",
-        @"*\trophy\*",
-        @"*\snowelfruins\*",
+        @"*\icebergs\*",
+        @"*\glaciers\*",
         @"*\wet\*",
         @"*\lod\*",
-        @"*\glaciers\*",
     };
 
     /// <summary>Case-insensitive substrings. A record whose EditorID contains one of these is
@@ -112,7 +109,7 @@ public sealed class ExtractSettings
     /// through real use: "marker" and "lod" rule out non-visual/LOD records that match "snow" in
     /// name only, "glacier" rules out glacier-specific records that aren't real candidates for
     /// this tool's own snow-mesh fixes.</summary>
-    public List<string> EditorIdBlacklistKeywords { get; set; } = new() { "marker", "glacier", "lod", "ice", "frozen", "icicle" };
+    public List<string> EditorIdBlacklistKeywords { get; set; } = new() { "glacier", "ice", "frozen", "icicle" };
     // ---- Landscape scope (shared by the blend and the snow pass) ----
 
     /// <summary>When true (default), only meshes living in a landscape folder of the game - any path
@@ -142,20 +139,18 @@ public sealed class ExtractSettings
     /// The snow pass has its own list, <see cref="MeshBlacklist"/>.</summary>
     public List<string> BlendMeshBlacklist { get; set; } = new()
     {
-        @"*\glass\*",
-        @"*\ice\*",
         @"*\trees\*",
-        @"*\actors\*",
+        @"*\ice\*",
+        @"*\icebergs\*",
+        @"*\glaciers\*",
         @"*\roads\*",
-        @"*\effects\*",
-        @"*\magic\*",
-        @"*\weapons\*",
+        @"*\plants\*",
     };
 
     /// <summary>Records whose EditorID contains one of these are never touched by the blend pass.</summary>
     public List<string> BlendEditorIdBlacklistKeywords { get; set; } = new()
     {
-        "ice", "frozen", "glass", "unique", "wet", "road", "cave", "mine",
+        "ice", "frozen", "unique", "wet", "road", "cave", "mine",
     };
 
     /// <summary>Template for generated TextureSet EditorIDs: {Type} and {Name} tokens.</summary>

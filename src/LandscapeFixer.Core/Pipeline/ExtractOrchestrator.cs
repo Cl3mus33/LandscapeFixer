@@ -102,6 +102,7 @@ public sealed class ExtractOrchestrator
     private int _iceSnowMaterialsRemoved;
     private int _itmOverridesRemoved;
     private int _vertexColorMeshesPatchedInPlace;
+    private int _snowRecordsWithoutCopy;
     private int _landscapesPatched;
 
     public ExtractOrchestrator(ExtractSettings settings)
@@ -500,6 +501,7 @@ public sealed class ExtractOrchestrator
             blendResult.MeshesPatchedInPlace,
             blendResult.TextureSetsCreated,
             blendResult.AlternateTexturesAssigned,
+            _snowRecordsWithoutCopy,
             _diagnostics,
             espPath);
 
@@ -531,6 +533,7 @@ public sealed class ExtractOrchestrator
             $"Blend: meshes patched in place: {result.BlendMeshesPatched}",
             $"Blend: TextureSets created: {result.BlendTextureSetsCreated}",
             $"Blend: Alternate Textures assigned: {result.BlendAlternateTexturesAssigned}",
+            $"Snow records left untouched (their mesh needed no fix, so no copy was kept): {result.SnowRecordsWithoutCopy}",
             $"Plugin written: {espPath}",
             "",
             $"{result.Diagnostics.Count} diagnostic(s):",
@@ -790,8 +793,9 @@ public sealed class ExtractOrchestrator
     // original filename with the given suffix instead ("_snow" for an actual snow match, or
     // "_novc" for a non-snow landscape mesh only duplicated to strip its vertex colors under
     // MeshVertexColorMode.All - see ProcessType).
-    private string? DuplicateMesh(string originalRelativePath, string? editorId, string fallbackSuffix = "_snow")
+    private string? DuplicateMesh(string originalRelativePath, string? editorId, out bool replacedExisting, string fallbackSuffix = "_snow")
     {
+        replacedExisting = false;
         if (!TryResolveMesh(originalRelativePath, out var stream) || stream is null)
         {
             _diagnostics.Add($"Mesh not found (loose or archived): meshes\\{originalRelativePath}");
@@ -827,6 +831,7 @@ public sealed class ExtractOrchestrator
         }
 
         var destFullPath = Path.Combine(_outputFolder, "meshes", newRelativePath);
+        replacedExisting = File.Exists(destFullPath);
         Directory.CreateDirectory(Path.GetDirectoryName(destFullPath)!);
 
         using (stream)
@@ -1386,32 +1391,45 @@ public sealed class ExtractOrchestrator
                 continue;
             }
 
-            var duplicatedPath = DuplicateMesh(modelPath, editorId);
+            // A copy only exists when something actually changes in it: the copy is made, every applicable
+            // fix is run on it, and when none of them found anything to change it is thrown away again
+            // and the record is left untouched (no override, vanilla mesh and Alternate Textures).
+            var duplicatedPath = DuplicateMesh(modelPath, editorId, out var replacedExisting);
             if (duplicatedPath is null)
             {
                 continue;
             }
 
-            var overrideModel = getOrAddOverrideModel(record);
-            overrideModel.File = duplicatedPath;
-
-            // Alternate Textures are never baked into the copy: the record keeps its own (ESP-level)
-            // and the copy keeps the mesh's own embedded texture paths, as in vanilla.
-
-            ApplyAlphaShaderFixups(duplicatedPath, editorId ?? modelPath);
+            var label = editorId ?? modelPath;
+            var changed = ApplyAlphaShaderFixups(duplicatedPath, label);
             if (isLandscape && _settings.MeshVertexColorMode == MeshVertexColorMode.SnowOnly)
             {
-                NeutralizeVertexColors(duplicatedPath, editorId ?? modelPath);
+                changed |= NeutralizeVertexColors(duplicatedPath, label);
             }
             if (isLandscape && _settings.CollisionMaterialMode != CollisionMaterialMode.None)
             {
-                RemapCollisionMaterials(duplicatedPath, editorId ?? modelPath);
+                changed |= RemapCollisionMaterials(duplicatedPath, label);
             }
             if (_settings.HideDecalShapes && IsHideDecalShapesEligibleFolder(modelPath))
             {
-                HideDecalShapes(duplicatedPath, editorId ?? modelPath);
+                changed |= HideDecalShapes(duplicatedPath, label);
             }
 
+            if (!changed)
+            {
+                _meshesCopied--;
+                _usedOutputPaths.Remove(duplicatedPath);
+                if (!replacedExisting)
+                {
+                    File.Delete(Path.Combine(_outputFolder, "meshes", duplicatedPath));
+                }
+
+                _snowRecordsWithoutCopy++;
+                continue;
+            }
+
+            var overrideModel = getOrAddOverrideModel(record);
+            overrideModel.File = duplicatedPath;
             _matched++;
         }
 

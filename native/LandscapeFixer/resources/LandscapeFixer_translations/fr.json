@@ -5,7 +5,7 @@
     "cancel": "Annuler"
   },
   "launcher": {
-    "intro": "Corrige les meshes de landscape de votre load order : l'alpha test devient de l'alpha blend avec des TextureSets « blend » dérivés (Blend), et chaque record de neige reçoit sa propre copie de mesh avec les correctifs de neige (Snow). Seuls les meshes situés dans un dossier landscape sont modifiés, tout est écrit dans un seul plugin, et la conversion PBR est laissée à PG Patcher ensuite.",
+    "intro": "Ce que Landscape Fixer a le droit de toucher : seulement les meshes situés dans un dossier landscape, plus le nettoyage des vertex colors du terrain et de ses meshes. Les onglets Blend et Snow contiennent les options de chaque passe ; tout est écrit dans un seul plugin, et la conversion PBR est laissée à PG Patcher ensuite.",
     "configProfile": {
       "label": "Profil de configuration",
       "load": "Charger la configuration...",
@@ -111,9 +111,8 @@
       "title": "Profil MO2 manquant"
     },
     "passes": {
-      "label": "Passes",
-      "blend": "Blend : alpha test vers alpha blend sur les meshes landscape, avec des TextureSets « blend » dérivés",
-      "snow": "Snow : une copie de mesh et une surcharge de plugin pour chaque record de neige"
+      "blend": "Activer la passe Blend",
+      "snow": "Activer la passe Snow"
     },
     "scope": {
       "label": "Périmètre landscape",
@@ -130,7 +129,7 @@
     },
     "blendMeshBlacklist": {
       "label": "Blacklist des meshes (Blend)",
-      "help": "Les meshes correspondant à une règle ici ne sont jamais modifiés par la passe Blend (verre, glace, ...). Jokers (*) autorisés. Clic droit pour ajouter/supprimer des lignes."
+      "help": "Les meshes correspondant à une règle ici ne sont jamais modifiés par la passe Blend (glace, routes, arbres, ...). Jokers (*) autorisés. Clic droit pour ajouter/supprimer des lignes."
     },
     "blendEditorIdKeywords": {
       "label": "Mots-clés EditorID exclus (Blend)",
@@ -150,7 +149,7 @@
       "intro": "Où se trouvent votre jeu, votre gestionnaire de mods et le dossier de sortie."
     },
     "snow": {
-      "intro": "Chaque record dont l'EditorID ou le chemin de mesh évoque la neige reçoit sa propre copie du mesh gagnant, avec les correctifs ci-dessous appliqués à la copie seulement. Les vertex colors peuvent aussi être effacées en place sur tous les meshes landscape."
+      "intro": "Chaque record dont l'EditorID ou le chemin de mesh évoque la neige peut recevoir sa propre copie du mesh gagnant, avec les correctifs ci-dessous appliqués à la copie seulement - la copie n'est gardée que si quelque chose a réellement changé dans le mesh, sinon le record reste intact."
     }
   },
   "progress": {
