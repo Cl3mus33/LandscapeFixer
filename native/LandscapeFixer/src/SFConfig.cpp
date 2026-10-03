@@ -32,7 +32,7 @@ auto appDataDir() -> filesystem::path
 }
 }
 
-auto SFConfig::getConfigPath() -> filesystem::path { return appDataDir() / "SnowFixer" / "settings.json"; }
+auto SFConfig::getConfigPath() -> filesystem::path { return appDataDir() / "LandscapeFixer" / "settings.json"; }
 
 auto SFConfig::load() -> SFParams { return loadFrom(getConfigPath()); }
 

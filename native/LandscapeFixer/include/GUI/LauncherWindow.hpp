@@ -15,7 +15,7 @@
  * Instance Path/Profile, Landscape Vertex Color mode, Mesh Vertex Color mode, Mesh Blacklist, EditorID
  * Blacklist Keywords) and Options tab (Language, Theme). Trimmed down from AutoBlend's own
  * LauncherWindow: no auto-generate allowlist, no PBR checkbox - neither exists in
- * SnowFixer.Core.Configuration.ExtractSettings.
+ * LandscapeFixer.Core.Configuration.ExtractSettings.
  */
 class LauncherWindow : public wxDialog {
 public:

@@ -3,7 +3,7 @@ cmake_minimum_required (VERSION 3.31)
 #
 # Project
 #
-set(PROJECT_NAME "SnowFixer")
+set(PROJECT_NAME "LandscapeFixer")
 
 # Our vcpkg triplet builds all dependencies with a static CRT (VCPKG_CRT_LINKAGE static), so our
 # own targets must match or every link step mismatches (LNK2038) against vcpkg's static libs.
@@ -42,7 +42,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 #
 # Submodules
 #
-add_subdirectory(SnowFixer)
+add_subdirectory(LandscapeFixer)
 
 #
 # No VC Redist DLL copy step: CMAKE_MSVC_RUNTIME_LIBRARY above statically links the CRT into

@@ -4,7 +4,7 @@
 #include "GUI/components/PGCustomListctrlChangedEvent.hpp"
 #include "util/StringUtil.hpp"
 
-#include <SnowFixer.NativeExportNE.h>
+#include <LandscapeFixer.NativeExportNE.h>
 #include <nlohmann/json.hpp>
 
 #include <wx/notebook.h>
@@ -56,7 +56,7 @@ static void forwardChoiceWheelToScrollPanel(wxWindow* root, wxScrolledWindow* sc
 }
 
 LauncherWindow::LauncherWindow(const SFParams& initParams, filesystem::path exePath)
-    : wxDialog(nullptr, wxID_ANY, "Snow Fixer", wxDefaultPosition, wxSize(760, 680), wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+    : wxDialog(nullptr, wxID_ANY, "Landscape Fixer", wxDefaultPosition, wxSize(760, 680), wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
     , m_exePath(std::move(exePath))
 {
     const wxIcon appIcon(wxICON(IDI_ICON1));
@@ -71,7 +71,7 @@ LauncherWindow::LauncherWindow(const SFParams& initParams, filesystem::path exeP
     auto* headerSizer = new wxBoxSizer(wxHORIZONTAL);
     auto* headerIcon = new wxStaticBitmap(headerPanel, wxID_ANY, wxBitmap(appIcon).ConvertToImage().Scale(32, 32, wxIMAGE_QUALITY_HIGH));
     headerSizer->Add(headerIcon, 0, wxALL | wxALIGN_CENTER_VERTICAL, BORDER_SIZE * 2);
-    auto* headerTitle = new wxStaticText(headerPanel, wxID_ANY, "Snow Fixer");
+    auto* headerTitle = new wxStaticText(headerPanel, wxID_ANY, "Landscape Fixer");
     wxFont headerFont = headerTitle->GetFont();
     headerFont.SetPointSize(headerFont.GetPointSize() + 4);
     headerFont.SetWeight(wxFONTWEIGHT_BOLD);
@@ -107,7 +107,7 @@ LauncherWindow::LauncherWindow(const SFParams& initParams, filesystem::path exeP
 
     // Config profile - a single install (e.g. shared outside any one modlist) can still keep
     // distinct settings per modlist by saving/loading separate JSON files here, instead of relying
-    // on %APPDATA%\SnowFixer\settings.json (which only isolates settings when each modlist gets its
+    // on %APPDATA%\LandscapeFixer\settings.json (which only isolates settings when each modlist gets its
     // own copy of the exe) - requested directly after noticing several modlists sharing one exe all
     // fight over that one file. Mirrors AutoBlend's own identical Load/Save Config pattern.
     generalSizer->Add(makeSectionLabel(generalPanel, SFTr("launcher.configProfile.label", "Config Profile")), 0,
@@ -364,7 +364,7 @@ LauncherWindow::LauncherWindow(const SFParams& initParams, filesystem::path exeP
     auto* removeIceSnowMaterialHelpText = new wxStaticText(generalPanel, wxID_ANY,
         SFTr("launcher.removeIceSnowMaterial.help",
             "Clears the SnowMaterialGlacier / SnowMaterialGlacierSlab Material Object from every static "
-            "that uses it, so no snow is projected on glaciers and ice. Only changes SnowFixer.esp - no "
+            "that uses it, so no snow is projected on glaciers and ice. Only changes LandscapeFixer.esp - no "
             "mesh is modified, and the ice's own shader material is left alone."));
     removeIceSnowMaterialHelpText->Wrap(HELP_WRAP_PAIRED);
     optionsColumnSizer->Add(removeIceSnowMaterialHelpText, 0, wxTOP, BORDER_SIZE);
@@ -613,7 +613,7 @@ void LauncherWindow::onLanguageChanged([[maybe_unused]] wxCommandEvent& event)
     }
 
     commitPendingListEdits();
-    SFLocale::init(m_exePath / "SnowFixer_translations", selectedLang.code);
+    SFLocale::init(m_exePath / "LandscapeFixer_translations", selectedLang.code);
     EndModal(RESULT_RELAUNCH);
 }
 
@@ -688,7 +688,7 @@ void LauncherWindow::onLoadConfig([[maybe_unused]] wxCommandEvent& event)
 void LauncherWindow::onSaveConfigAs([[maybe_unused]] wxCommandEvent& event)
 {
     wxFileDialog dialog(this, SFTr("launcher.configProfile.saveDialogTitle", "Save Config As"), wxEmptyString,
-        "SnowFixer_config.json", SFTr("launcher.configProfile.fileFilter", "JSON files (*.json)|*.json|All files (*.*)|*.*"),
+        "LandscapeFixer_config.json", SFTr("launcher.configProfile.fileFilter", "JSON files (*.json)|*.json|All files (*.*)|*.*"),
         wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     if (dialog.ShowModal() != wxID_OK) {
         return;

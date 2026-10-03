@@ -3,7 +3,7 @@
 #include "SFLocale.hpp"
 #include "util/StringUtil.hpp"
 
-#include <SnowFixer.NativeExportNE.h>
+#include <LandscapeFixer.NativeExportNE.h>
 #include <nlohmann/json.hpp>
 
 #include <chrono>
@@ -35,7 +35,7 @@ constexpr int WRAP_WIDTH = 340;
 const wxColour ACCENT(30, 111, 168);
 const wxColour ACCENT_TEXT(255, 255, 255);
 
-// SnowFixer.NativeExportNE.h declares every [UnmanagedCallersOnly] export as taking/
+// LandscapeFixer.NativeExportNE.h declares every [UnmanagedCallersOnly] export as taking/
 // returning intptr_t (Exports.cs never applies a [DNNE.C99Type] override, so DNNE falls back to
 // IntPtr's natural C mapping) - these two helpers are the only place that needs to know that.
 auto toIntPtr(const string& utf8) -> intptr_t { return reinterpret_cast<intptr_t>(utf8.c_str()); }
@@ -46,7 +46,7 @@ auto fromIntPtr(intptr_t ptr) -> string
 }
 
 ProgressWindow::ProgressWindow(const SFParams& params, const filesystem::path& /*exePath*/)
-    : wxDialog(nullptr, wxID_ANY, "Snow Fixer", wxDefaultPosition, wxSize(420, 170), wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+    : wxDialog(nullptr, wxID_ANY, "Landscape Fixer", wxDefaultPosition, wxSize(420, 170), wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
     , m_pulseTimer(this)
     , m_outputLocation(params.outputLocation)
 {
@@ -212,7 +212,7 @@ void ProgressWindow::onWorkerFinished(
     m_closeButton->SetLabel(success ? SFTr("progress.doneClose", "Done - Close") : SFTr("progress.failedClose", "Failed - Close"));
     m_closeButton->Enable(true);
 
-    // SnowFixer.Core.Pipeline.ExtractOrchestrator already writes SnowFixer-log.txt
+    // LandscapeFixer.Core.Pipeline.ExtractOrchestrator already writes LandscapeFixer-log.txt
     // itself as part of Run() (unlike AutoBlend, whose native shell writes AutoBlend-log.txt) - this
     // just mirrors the same summary into this window's own in-app log, it doesn't write the file.
     auto diagnosticCount = 0;
@@ -264,9 +264,9 @@ void ProgressWindow::onWorkerFinished(
 
     wxMessageBox(
         SFTr("progress.completion.message",
-            "Generation complete. Don't forget to enable Snow Fixer's output plugin in your mod manager's "
+            "Generation complete. Don't forget to enable Landscape Fixer's output plugin in your mod manager's "
             "plugin list if it isn't already active."),
-        SFTr("progress.completion.title", "Snow Fixer"), wxOK | wxICON_INFORMATION, this);
+        SFTr("progress.completion.title", "Landscape Fixer"), wxOK | wxICON_INFORMATION, this);
     // Dismissing this message box means the same thing as clicking "Done - Close" - just close.
     EndModal(wxID_OK);
 }

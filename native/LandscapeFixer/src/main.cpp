@@ -19,7 +19,7 @@
 using namespace std;
 
 namespace {
-// Writes to %APPDATA%\SnowFixer\native-startup.log, flushed after every line. Exists
+// Writes to %APPDATA%\LandscapeFixer\native-startup.log, flushed after every line. Exists
 // specifically so a silent early-startup failure (e.g. wxEntryStart failing, where the console is
 // hidden before anything gets a chance to print) still leaves a record on disk - mirrors
 // AutoBlend's own main.cpp startupLog() reasoning.
@@ -28,7 +28,7 @@ void startupLog(const string& message)
     PWSTR rawPath = nullptr;
     filesystem::path logPath;
     if (SHGetKnownFolderPath(FOLDERID_RoamingAppData, 0, nullptr, &rawPath) == S_OK) {
-        logPath = filesystem::path(rawPath) / "SnowFixer" / "native-startup.log";
+        logPath = filesystem::path(rawPath) / "LandscapeFixer" / "native-startup.log";
     }
     if (rawPath != nullptr) {
         CoTaskMemFree(rawPath);
@@ -70,7 +70,7 @@ void configureDotnetLibDirectory(const filesystem::path& exeDir)
 {
     // Removes the current working directory from the default LoadLibrary search order (Microsoft's
     // documented DLL-planting mitigation) - called unconditionally, before the
-    // SnowFixer_dotnetlib existence check below, so a corrupted/incomplete install doesn't
+    // LandscapeFixer_dotnetlib existence check below, so a corrupted/incomplete install doesn't
     // leave the process running its whole lifetime with an unprotected search order.
     if (SetDefaultDllDirectories(LOAD_LIBRARY_SEARCH_DEFAULT_DIRS | LOAD_LIBRARY_SEARCH_USER_DIRS) == 0) {
         startupLog("configureDotnetLibDirectory: SetDefaultDllDirectories failed, error " + to_string(GetLastError()));
@@ -78,10 +78,10 @@ void configureDotnetLibDirectory(const filesystem::path& exeDir)
         exit(1);
     }
 
-    // Deliberately named SnowFixer_dotnetlib rather than "dotnetlib" - AutoBlend ships its
+    // Deliberately named LandscapeFixer_dotnetlib rather than "dotnetlib" - AutoBlend ships its
     // own AutoBlend_dotnetlib/ full of similar self-contained .NET runtime files, so a generic name
     // would collide almost entirely when both tools are installed as MO2 mods in the same modlist.
-    const auto libDir = exeDir / "SnowFixer_dotnetlib";
+    const auto libDir = exeDir / "LandscapeFixer_dotnetlib";
     if (!filesystem::exists(libDir)) {
         startupLog("configureDotnetLibDirectory: " + libDir.string() + " does not exist, skipping");
         return;
@@ -101,7 +101,7 @@ void configureDotnetLibDirectory(const filesystem::path& exeDir)
 // - the plain wxApp used previously left that path unlogged. No handler currently throws, but this
 // costs nothing and means a future one that does still leaves a record in native-startup.log
 // instead of vanishing into wx's own (version-dependent) default handling.
-class SnowFixerApp : public wxApp {
+class LandscapeFixerApp : public wxApp {
 public:
     auto OnExceptionInMainLoop() -> bool override
     {
@@ -120,7 +120,7 @@ auto runGUI(const filesystem::path& exePath) -> int
 {
     startupLog("runGUI: entered");
 
-    wxApp::SetInstance(new SnowFixerApp()); // NOLINT(cppcoreguidelines-owning-memory)
+    wxApp::SetInstance(new LandscapeFixerApp()); // NOLINT(cppcoreguidelines-owning-memory)
     if (!wxEntryStart(nullptr, nullptr)) {
         startupLog("runGUI: wxEntryStart failed");
         cerr << "Failed to initialize wxWidgets.\n";
@@ -138,10 +138,10 @@ auto runGUI(const filesystem::path& exePath) -> int
     auto params = SFConfig::load();
     startupLog("runGUI: settings loaded");
     if (params.outputLocation.empty()) {
-        params.outputLocation = (exePath / "SnowFixer_Output").wstring();
+        params.outputLocation = (exePath / "LandscapeFixer_Output").wstring();
     }
 
-    SFLocale::init(exePath / "SnowFixer_translations", params.uiLanguage);
+    SFLocale::init(exePath / "LandscapeFixer_translations", params.uiLanguage);
 
     int launcherResult = 0;
     do {
@@ -187,7 +187,7 @@ auto runGUI(const filesystem::path& exePath) -> int
         STARTUPINFOW startupInfo {};
         startupInfo.cb = sizeof(startupInfo);
         PROCESS_INFORMATION processInfo {};
-        const auto exeFullPath = (exePath / "SnowFixer.exe").wstring();
+        const auto exeFullPath = (exePath / "LandscapeFixer.exe").wstring();
         const auto workingDir = exePath.wstring();
         if (CreateProcessW(exeFullPath.c_str(), nullptr, nullptr, nullptr, FALSE, 0, nullptr, workingDir.c_str(),
                 &startupInfo, &processInfo)
@@ -196,11 +196,11 @@ auto runGUI(const filesystem::path& exePath) -> int
             CloseHandle(processInfo.hThread);
         } else {
             const auto errorCode = GetLastError();
-            startupLog("runGUI: failed to restart SnowFixer after the theme change (error " + to_string(errorCode) + ")");
-            wxMessageBox(wxString::Format("Snow Fixer couldn't restart itself after the theme change (error %lu). "
+            startupLog("runGUI: failed to restart LandscapeFixer after the theme change (error " + to_string(errorCode) + ")");
+            wxMessageBox(wxString::Format("Landscape Fixer couldn't restart itself after the theme change (error %lu). "
                                           "Please relaunch it manually.",
                              errorCode),
-                "Snow Fixer", wxOK | wxICON_ERROR);
+                "Landscape Fixer", wxOK | wxICON_ERROR);
         }
 
         wxEntryCleanup();
@@ -228,7 +228,7 @@ auto main(int /*argC*/, char** /*argV*/) -> int
     SetConsoleOutputCP(CP_UTF8);
     ExceptionHandler::setMainThread();
 
-    startupLog("=== SnowFixer starting ===");
+    startupLog("=== LandscapeFixer starting ===");
 
     const auto exePath = getExecutablePath().parent_path();
     startupLog("main: exePath = " + exePath.string());

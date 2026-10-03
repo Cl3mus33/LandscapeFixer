@@ -74,7 +74,7 @@
     "removeIceSnowMaterial": {
       "label": "Ice Snow Material",
       "checkbox": "Remove the glacier snow material from statics",
-      "help": "Clears the SnowMaterialGlacier / SnowMaterialGlacierSlab Material Object from every static that uses it, so no snow is projected on glaciers and ice. Only changes SnowFixer.esp - no mesh is modified, and the ice's own shader material is left alone."
+      "help": "Clears the SnowMaterialGlacier / SnowMaterialGlacierSlab Material Object from every static that uses it, so no snow is projected on glaciers and ice. Only changes LandscapeFixer.esp - no mesh is modified, and the ice's own shader material is left alone."
     },
     "tab": {
       "general": "General",
@@ -116,8 +116,8 @@
     "doneClose": "Done - Close",
     "failedClose": "Failed - Close",
     "completion": {
-      "message": "Generation complete. Don't forget to enable Snow Fixer's output plugin in your mod manager's plugin list if it isn't already active.",
-      "title": "Snow Fixer"
+      "message": "Generation complete. Don't forget to enable Landscape Fixer's output plugin in your mod manager's plugin list if it isn't already active.",
+      "title": "Landscape Fixer"
     }
   }
 }

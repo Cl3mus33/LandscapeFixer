@@ -10,7 +10,7 @@
  * @class SFLocale
  * @brief GUI localization system backed by JSON translation files
  *
- * Translation files live in the "SnowFixer_translations" folder next to the executable, one file per language
+ * Translation files live in the "LandscapeFixer_translations" folder next to the executable, one file per language
  * named by its IETF/ISO language code (e.g. "en.json", "fr.json"). The schema is i18next-style nested JSON: nested
  * objects whose leaf string values are addressed by dot-separated keys, e.g. {"launcher": {"title": "..."}} is
  * looked up as "launcher.title". A reserved top-level "_language" key holds the language's native display name

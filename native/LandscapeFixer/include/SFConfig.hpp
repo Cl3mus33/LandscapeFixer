@@ -8,7 +8,7 @@
 
 /**
  * @brief Landscape (LAND record) vertex color handling mode. Values (and their on-wire order) must
- * stay in lockstep with SnowFixer.Core.Configuration.LandscapeVertexColorMode - both sides
+ * stay in lockstep with LandscapeFixer.Core.Configuration.LandscapeVertexColorMode - both sides
  * serialize this as a plain integer.
  */
 enum class SFLandscapeVertexColorMode : int { None = 0, All = 1, SnowOnly = 2 };
@@ -17,7 +17,7 @@ enum class SFLandscapeVertexColorMode : int { None = 0, All = 1, SnowOnly = 2 };
  * @brief Landscape-folder MESH vertex color handling mode - entirely separate from
  * SFLandscapeVertexColorMode, which clears LAND (terrain) records instead of mesh geometry. Values
  * (and their on-wire order) must stay in lockstep with
- * SnowFixer.Core.Configuration.MeshVertexColorMode - both sides serialize this as a plain integer.
+ * LandscapeFixer.Core.Configuration.MeshVertexColorMode - both sides serialize this as a plain integer.
  */
 enum class SFMeshVertexColorMode : int { None = 0, SnowOnly = 1, All = 2 };
 
@@ -27,27 +27,27 @@ enum class SFMeshVertexColorMode : int { None = 0, SnowOnly = 1, All = 2 };
  * touching collision. No "All" option - duplicating a non-snow mesh purely to fix its collision
  * material wasn't judged worth the extra mesh, so this only ever applies to the snow-matched
  * duplicates the tool already generates. Values (and their on-wire order) must stay in lockstep with
- * SnowFixer.Core.Configuration.CollisionMaterialMode - both sides serialize this as a plain integer.
+ * LandscapeFixer.Core.Configuration.CollisionMaterialMode - both sides serialize this as a plain integer.
  */
 enum class SFCollisionMaterialMode : int { None = 0, SnowOnly = 1 };
 
-/// @brief Mirrors SnowFixer.Core.Configuration.ModManagerType (same integer values).
+/// @brief Mirrors LandscapeFixer.Core.Configuration.ModManagerType (same integer values).
 enum class SFModManagerType : int { None = 0, ModOrganizer2 = 1 };
 
-/// @brief Mirrors SnowFixer.Core.Configuration.GameType (same integer values). LE support is new
+/// @brief Mirrors LandscapeFixer.Core.Configuration.GameType (same integer values). LE support is new
 /// and far less battle-tested than SE.
 enum class SFGameType : int { SkyrimSE = 0, SkyrimLE = 1 };
 
 /**
- * @brief User-configurable parameters for SnowFixer, persisted as JSON. Field set and JSON
- * key names mirror SnowFixer.Core.Configuration.ExtractSettings exactly (PascalCase keys,
+ * @brief User-configurable parameters for LandscapeFixer, persisted as JSON. Field set and JSON
+ * key names mirror LandscapeFixer.Core.Configuration.ExtractSettings exactly (PascalCase keys,
  * default System.Text.Json serialization - no naming policy) so both this native shell and a
- * future shell read/write the very same %APPDATA%\SnowFixer\settings.json without any
+ * future shell read/write the very same %APPDATA%\LandscapeFixer\settings.json without any
  * translation layer. Mirrors AutoBlend's own ABParams, trimmed to this tool's much smaller settings
  * surface - no auto-generate allowlist, no PBR toggle.
  */
 struct SFParams {
-    /// @brief GUI language code (SnowFixer_translations/&lt;code&gt;.json); English if missing.
+    /// @brief GUI language code (LandscapeFixer_translations/&lt;code&gt;.json); English if missing.
     std::string uiLanguage = "en";
     /// @brief GUI color theme: "system", "light", or "dark".
     std::string uiTheme = "system";
@@ -57,7 +57,7 @@ struct SFParams {
     /// @brief Skyrim Special Edition or Legendary Edition. LE support is new and far less
     /// battle-tested than SE.
     SFGameType gameType = SFGameType::SkyrimSE;
-    /// @brief Folder the extraction writes its generated mod (meshes + SnowFixer.esp + log) into.
+    /// @brief Folder the extraction writes its generated mod (meshes + LandscapeFixer.esp + log) into.
     std::wstring outputLocation;
 
     SFLandscapeVertexColorMode landscapeVertexColorMode = SFLandscapeVertexColorMode::None;
@@ -79,7 +79,7 @@ struct SFParams {
 
     /// @brief Meshes matching any wildcard rule here are never duplicated/patched. Defaults
     /// refined through real use against a real modlist - see
-    /// SnowFixer.Core.Configuration.ExtractSettings.MeshBlacklist for the reasoning behind each
+    /// LandscapeFixer.Core.Configuration.ExtractSettings.MeshBlacklist for the reasoning behind each
     /// entry; both sides must stay in lockstep.
     std::vector<std::wstring> meshBlacklist {
         LR"(*\trees\*)",       LR"(*\ice\*)",         LR"(*\effects\*)",
@@ -89,7 +89,7 @@ struct SFParams {
     };
     /// @brief Records whose EditorID contains one of these words (case-insensitive) are skipped
     /// entirely. Defaults refined through real use - see
-    /// SnowFixer.Core.Configuration.ExtractSettings.EditorIdBlacklistKeywords for the reasoning;
+    /// LandscapeFixer.Core.Configuration.ExtractSettings.EditorIdBlacklistKeywords for the reasoning;
     /// both sides must stay in lockstep.
     std::vector<std::wstring> editorIdBlacklistKeywords {
         L"marker", L"glacier", L"lod", L"ice", L"frozen", L"icicle",
@@ -107,7 +107,7 @@ struct SFParams {
 
 /**
  * @class SFConfig
- * @brief Loads/saves SFParams to the same settings.json SnowFixer.Core's Exports.cs
+ * @brief Loads/saves SFParams to the same settings.json LandscapeFixer.Core's Exports.cs
  * (de)serializes into an ExtractSettings, so settings persist between runs. Mirrors AutoBlend's own
  * ABConfig (same file I/O pattern) under this project's own name.
  */
@@ -120,7 +120,7 @@ public:
     static void saveTo(const std::filesystem::path& configFilePath, const SFParams& params);
 
     /// @brief Serializes params to the exact JSON shape
-    /// SnowFixer.Core.Configuration.ExtractSettings (de)serializes - used both by
+    /// LandscapeFixer.Core.Configuration.ExtractSettings (de)serializes - used both by
     /// save()/saveTo() and to build the payload start_extract_run expects.
     static auto toJson(const SFParams& params) -> nlohmann::json;
 

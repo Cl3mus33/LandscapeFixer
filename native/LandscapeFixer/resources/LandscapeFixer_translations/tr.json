@@ -74,7 +74,7 @@
     "removeIceSnowMaterial": {
       "label": "Buz Kar Materyali",
       "checkbox": "Buzul kar materyalini static'lerden kaldır",
-      "help": "SnowMaterialGlacier / SnowMaterialGlacierSlab Material Object'ini kullanan tüm static'lerden kaldırır, böylece buzullara ve buza kar yansıtılmaz. Yalnızca SnowFixer.esp'yi değiştirir - hiçbir mesh değiştirilmez ve buzun kendi shader materyali korunur."
+      "help": "SnowMaterialGlacier / SnowMaterialGlacierSlab Material Object'ini kullanan tüm static'lerden kaldırır, böylece buzullara ve buza kar yansıtılmaz. Yalnızca LandscapeFixer.esp'yi değiştirir - hiçbir mesh değiştirilmez ve buzun kendi shader materyali korunur."
     },
     "tab": {
       "general": "Genel",
@@ -116,8 +116,8 @@
     "doneClose": "Tamamlandı - Kapat",
     "failedClose": "Başarısız - Kapat",
     "completion": {
-      "message": "Oluşturma tamamlandı. Henüz etkin değilse Snow Fixer’ın çıktı eklentisini mod yöneticinizin eklenti listesinden etkinleştirmeyi unutmayın.",
-      "title": "Snow Fixer"
+      "message": "Oluşturma tamamlandı. Henüz etkin değilse Landscape Fixer’ın çıktı eklentisini mod yöneticinizin eklenti listesinden etkinleştirmeyi unutmayın.",
+      "title": "Landscape Fixer"
     }
   }
 }

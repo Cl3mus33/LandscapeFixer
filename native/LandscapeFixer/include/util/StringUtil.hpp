@@ -5,7 +5,7 @@
 /**
  * @brief UTF-8/UTF-16 conversion helpers. Trimmed down from AutoSeasons' own StringUtil (which
  * also handled Windows-1252/ASCII codepages and vector/JSON-array helpers for its plugin-string
- * reading code) to just what SnowFixer actually needs: settings.json round-trips UTF-8 text,
+ * reading code) to just what LandscapeFixer actually needs: settings.json round-trips UTF-8 text,
  * wxString/std::filesystem::path want UTF-16 - nothing here ever touches a legacy codepage.
  */
 namespace StringUtil {

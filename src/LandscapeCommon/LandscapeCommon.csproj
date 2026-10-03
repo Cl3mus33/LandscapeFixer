@@ -14,4 +14,10 @@
     <PackageReference Include="niflysharp" Version="1.3.0" />
   </ItemGroup>
 
+  <PropertyGroup>
+    <!-- The native build redirects BaseIntermediateOutputPath, which stops the SDK excluding the
+         project's own obj/bin from the default globs: stale ones then compile twice (CS0579). -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);obj/**;bin/**</DefaultItemExcludes>
+  </PropertyGroup>
+
 </Project>

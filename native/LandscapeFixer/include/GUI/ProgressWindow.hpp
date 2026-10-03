@@ -11,8 +11,8 @@
 #include <thread>
 
 /**
- * @brief Modal dialog that runs the SnowFixer extraction pipeline on a background thread.
- * The pipeline itself lives entirely in SnowFixer.Core (C#) behind the DNNE-exported
+ * @brief Modal dialog that runs the LandscapeFixer extraction pipeline on a background thread.
+ * The pipeline itself lives entirely in LandscapeFixer.Core (C#) behind the DNNE-exported
  * start_extract_run/get_progress calls - this window's worker thread just calls start_extract_run
  * once and polls get_progress every ~150ms, translating the returned JSON snapshot into the same
  * compact status/gauge/collapsible-log UX AutoBlend's own ProgressWindow uses. The Close button
@@ -44,8 +44,8 @@ private:
     void applySnapshot(const wxString& status, int current, int total, bool isIndeterminate);
     void appendLog(const wxString& text);
     // resultJson is the DNNE bridge's raw ExtractResult JSON (PascalCase, see
-    // SnowFixer.Core.Pipeline.ExtractResult) - empty if the run failed before producing one.
-    // Writes SnowFixer-log.txt into the output location.
+    // LandscapeFixer.Core.Pipeline.ExtractResult) - empty if the run failed before producing one.
+    // Writes LandscapeFixer-log.txt into the output location.
     // failureDetail is the concise exception message; failureDetails is the full type/stack text
     // returned by the managed bridge for fatal errors.
     void onWorkerFinished(bool success, const wxString& failureDetail, const wxString& failureDetails,

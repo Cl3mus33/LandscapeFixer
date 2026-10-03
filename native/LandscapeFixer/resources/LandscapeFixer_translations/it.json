@@ -74,7 +74,7 @@
     "removeIceSnowMaterial": {
       "label": "Materiale neve sul ghiaccio",
       "checkbox": "Rimuovi il materiale neve dei ghiacciai dagli static",
-      "help": "Rimuove il Material Object SnowMaterialGlacier / SnowMaterialGlacierSlab da ogni static che lo usa, in modo che non venga proiettata neve su ghiacciai e ghiaccio. Modifica solo SnowFixer.esp - nessuna mesh viene modificata e il materiale shader proprio del ghiaccio resta invariato."
+      "help": "Rimuove il Material Object SnowMaterialGlacier / SnowMaterialGlacierSlab da ogni static che lo usa, in modo che non venga proiettata neve su ghiacciai e ghiaccio. Modifica solo LandscapeFixer.esp - nessuna mesh viene modificata e il materiale shader proprio del ghiaccio resta invariato."
     },
     "tab": {
       "general": "Generale",
@@ -116,8 +116,8 @@
     "doneClose": "Completato - Chiudi",
     "failedClose": "Fallito - Chiudi",
     "completion": {
-      "message": "Generazione completata. Non dimenticare di attivare il plugin di output di Snow Fixer nell'elenco dei plugin del tuo mod manager, se non è già attivo.",
-      "title": "Snow Fixer"
+      "message": "Generazione completata. Non dimenticare di attivare il plugin di output di Landscape Fixer nell'elenco dei plugin del tuo mod manager, se non è già attivo.",
+      "title": "Landscape Fixer"
     }
   }
 }
