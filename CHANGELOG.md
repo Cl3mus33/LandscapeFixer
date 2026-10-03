@@ -16,6 +16,14 @@ The history of the two tools this one replaces lives in their own repositories
 - Passes can be switched on and off, and the blend pass has its own tab (PBR slots, auto-generate
   allowlist, blacklists).
 
+### Fixed
+- **A straight seam along a cell border (one side lighter) when "Clear on all terrain" was on.** Since Snow
+  Fixer 1.2.11 a terrain cell was skipped as "deliberately repainted by a mod" as soon as its vertex
+  colors differed from vanilla by a single value - but a mod that merely re-saves a cell (a grass fix, a
+  seam fix) nudges a few colors by a few levels out of 255. On the test load order 15 cells (all from one
+  grass-fix mod, 1.1/255 on average, 8.2/255 at most) stayed tinted while every neighbour was cleared.
+  Only a mean difference above 16/255 per channel now counts as a mod's own paint job and is kept.
+
 ### Changed
 - A snow record only gets a mesh copy (and a plugin override) when one of the snow fixes actually
   changed something in its mesh; otherwise the copy is dropped and the record is left alone. On the
