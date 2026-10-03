@@ -14,6 +14,10 @@ add_executable(${EXE_NAME}
     ${HEADERS}
     ${CMAKE_CURRENT_SOURCE_DIR}/resources/icon.rc
 )
+# The .rc only names icon.ico, which CMake/Ninja don't see as a dependency: without this, a changed icon
+# was never re-embedded into the exe (the old one kept showing in the window and in MO2).
+set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/resources/icon.rc
+    PROPERTIES OBJECT_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/resources/icon.ico)
 target_compile_options(${EXE_NAME} PRIVATE /utf-8)
 target_include_directories(${EXE_NAME} PUBLIC include)
 
