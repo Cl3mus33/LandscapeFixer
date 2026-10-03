@@ -119,7 +119,7 @@ struct SFParams {
     };
     /// @brief Records whose EditorID contains one of these are never touched by the blend pass.
     std::vector<std::wstring> blendEditorIdBlacklistKeywords {
-        L"ice", L"frozen", L"unique", L"wet", L"road", L"cave", L"mine",
+        L"ice", L"frozen", L"unique", L"wet", L"road",
     };
 
     /// @brief Also generates a PBR sibling (Height/RMAOS) for landscape textures that have none.

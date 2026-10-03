@@ -22,6 +22,7 @@ The history of the two tools this one replaces lives in their own repositories
   test load order with collision remapping and decal hiding on, 126 copies instead of 232.
 - The default mesh blacklists were trimmed to what exists under the landscape folders (blend: trees,
   ice, icebergs, glaciers, roads, plants; snow: trees, ice, icebergs, glaciers, wet, lod).
+  The blend EditorID keywords lose `glass`, `cave` and `mine` (ice, frozen, unique, wet, road remain).
 - "Clear vertex colors on all landscape meshes" is now done in place, once per mesh, on the winning
   mesh at its own vanilla path - no more one copy per record (1166 fewer meshes on the test load
   order). "Only on the generated snow meshes" still uses the snow copies.

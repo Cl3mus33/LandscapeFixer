@@ -150,7 +150,7 @@ public sealed class ExtractSettings
     /// <summary>Records whose EditorID contains one of these are never touched by the blend pass.</summary>
     public List<string> BlendEditorIdBlacklistKeywords { get; set; } = new()
     {
-        "ice", "frozen", "unique", "wet", "road", "cave", "mine",
+        "ice", "frozen", "unique", "wet", "road",
     };
 
     /// <summary>Template for generated TextureSet EditorIDs: {Type} and {Name} tokens.</summary>
