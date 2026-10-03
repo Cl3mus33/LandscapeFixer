@@ -221,8 +221,12 @@ void ProgressWindow::onWorkerFinished(
             const auto result = nlohmann::json::parse(resultJson);
             ostringstream summary;
             summary << "\n=== Result ===\n";
-            summary << "Records matched: " << result.value("RecordsMatched", 0) << "\n";
-            summary << "Meshes duplicated: " << result.value("MeshesDuplicated", 0) << "\n";
+            summary << "Blend - meshes patched in place: " << result.value("BlendMeshesPatched", 0) << "\n";
+            summary << "Blend - TextureSets created: " << result.value("BlendTextureSetsCreated", 0) << "\n";
+            summary << "Blend - Alternate Textures assigned: " << result.value("BlendAlternateTexturesAssigned", 0) << "\n";
+            summary << "Snow - records matched: " << result.value("RecordsMatched", 0) << "\n";
+            summary << "Snow - meshes copied: " << result.value("MeshesDuplicated", 0) << "\n";
+            summary << "Landscape meshes with vertex colors cleared in place: " << result.value("VertexColorMeshesPatchedInPlace", 0) << "\n";
             summary << "Meshes failed to resolve: " << result.value("MeshesFailed", 0) << "\n";
             summary << "Malformed records skipped: " << result.value("MalformedRecordsSkipped", 0) << "\n";
             summary << "Meshes with ZBuffer_Write/No_Fade shader flag fixups: " << result.value("ShaderFlagsPatched", 0) << "\n";

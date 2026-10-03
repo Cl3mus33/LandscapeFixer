@@ -20,7 +20,7 @@ namespace LandscapeCommon.Scanning;
 /// alpha - i.e. this is the exact transform Vanaheimr's own textures were made with, not a
 /// convenient approximation.
 ///
-/// Implemented via a direct P/Invoke call into AutoBlendTexTools.dll (native/AutoBlendTexTools, a
+/// Implemented via a direct P/Invoke call into LandscapeFixerTexTools.dll (native/LandscapeFixerTexTools, a
 /// small DirectXTex wrapper built alongside this project) rather than shelling out to texconv.exe
 /// as a subprocess: MO2's USVFS hooks CreateProcess for every child process of an MO2-launched
 /// executable, and texconv.exe reliably crashed with STATUS_ACCESS_VIOLATION under that hook in
@@ -29,7 +29,7 @@ namespace LandscapeCommon.Scanning;
 /// </summary>
 public sealed class MissingTextureGenerator
 {
-    [DllImport("AutoBlendTexTools.dll", CharSet = CharSet.Unicode)]
+    [DllImport("LandscapeFixerTexTools.dll", CharSet = CharSet.Unicode)]
     private static extern int ab_strip_alpha_to_opaque(string srcPath, string dstPath, int isPbr, int isLe);
 
     // A single combined file (matching how "Sloppy Vanilla Landscapes PBR" itself ships all of its
@@ -38,7 +38,7 @@ public sealed class MissingTextureGenerator
     // same shared folder - PG Patcher discovers configs by scanning the whole "PBRNifPatcher\"
     // subtree regardless of how many files are in it (confirmed: file count/naming has no bearing
     // on its own matching or conflict-resolution behavior), so consolidating costs nothing.
-    private const string CombinedPbrNifPatcherJsonPath = @"PBRNifPatcher\AutoBlend_blend.json";
+    private const string CombinedPbrNifPatcherJsonPath = @"PBRNifPatcher\LandscapeFixer_blend.json";
 
     private readonly IGameFileProbe _fileProbe;
     private readonly string _outputLocation;

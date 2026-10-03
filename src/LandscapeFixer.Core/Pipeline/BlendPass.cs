@@ -209,7 +209,7 @@ public sealed class BlendPass
 
         _ctx.Report($"{recordsScanned} Static/MoveableStatic record(s) scanned, {candidatesByMesh.Count} distinct mesh(es) not blacklisted.");
 
-        var tempDir = Path.Combine(NifIo.GetAsciiTempRoot(), "AutoBlend_" + Guid.NewGuid().ToString("N"));
+        var tempDir = Path.Combine(NifIo.GetAsciiTempRoot(), "LandscapeFixer_" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(tempDir);
 
         var meshesPatchedInPlace = 0;
@@ -412,7 +412,7 @@ public sealed class BlendPass
                 }
 
                 // The mesh is patched at its own (vanilla) path, whatever plan says: the version extracted
-                // above is the load-order winner (ERM, SMIM, ... or vanilla), and AutoBlend Output loads
+                // above is the load-order winner (ERM, SMIM, ... or vanilla), and the LandscapeFixer output loads
                 // after it, so the patched file simply replaces it - no renamed "_blend" copy for PG Patcher
                 // to trip over. A mesh shared with records the blacklist excludes (ice, frozen, cave, ...)
                 // used to get such a copy, because the alpha test -> blend flip is mesh-wide and would reach
