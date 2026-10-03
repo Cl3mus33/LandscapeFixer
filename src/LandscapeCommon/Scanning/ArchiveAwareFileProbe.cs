@@ -1,0 +1,194 @@
+using System.Collections.Concurrent;
+using Mutagen.Bethesda;
+using Mutagen.Bethesda.Archives;
+using Mutagen.Bethesda.Archives.Exceptions;
+using Noggog;
+
+namespace LandscapeCommon.Scanning;
+
+/// <summary>
+/// Loose files first (matching Skyrim's real VFS priority — loose always wins), falling back to
+/// every BSA/BA2 applicable to the data folder for this game release. Each archive's full file
+/// list is indexed case-insensitively on first use (not up front in the constructor) so a modlist
+/// carrying many large archives only pays the indexing cost for archives we actually end up
+/// querying.
+/// </summary>
+public sealed class ArchiveAwareFileProbe : IGameFileProbe
+{
+    private readonly LooseFileProbe _looseProbe;
+    private readonly IReadOnlyList<IArchiveReader> _archiveReaders;
+
+    // IArchiveReader.TryGetFolder(folderPath) does a case-SENSITIVE lookup internally - real-world
+    // BSA/BA2 archives frequently mix casing between what a plugin's own Model.File path uses
+    // (e.g. "BSCyrodiil\...") and what got packed into the archive (e.g. "bscyrodiil\..."), or even
+    // between different records referencing the very same folder. Indexing every archive's full
+    // file list once (case-insensitively, lazily on first use) avoids the folder-lookup step's case
+    // sensitivity entirely; built once per reader rather than per query since IArchiveReader.Files
+    // enumerates the whole archive.
+    private readonly ConcurrentDictionary<IArchiveReader, Dictionary<string, IArchiveFile>> _archiveIndexes = new();
+
+    // Needed only for ManualArchiveExtractor's own workaround (see OpenRead) - it has to reopen the
+    // physical archive file itself, and IArchiveReader has no public property exposing that back.
+    private readonly ConcurrentDictionary<IArchiveReader, string> _readerArchivePaths = new();
+
+    // Reported straight to the caller (ExtractOrchestrator's own diagnostics list) rather than
+    // swallowed - a mod whose entire archive silently fails to open used to mean every one of its
+    // meshes fell back to whatever the next-lower-priority mod (or vanilla) provides, completely
+    // invisibly: reported directly on Nexus as "every static reverts to vanilla" with no error
+    // shown anywhere, for a modlist where the actual cause turned out to be exactly this. Optional
+    // (defaults to a no-op) so existing callers that don't care still compile unchanged.
+    private readonly Action<string> _onDiagnostic;
+
+    public ArchiveAwareFileProbe(string dataRoot, GameRelease gameRelease, Action<string>? onDiagnostic = null)
+    {
+        // Diagnostics can come from several mesh-processing threads at once - serialize the calls so
+        // a plain List<string>.Add is a safe thing to pass in.
+        var diagnosticLock = new object();
+        _onDiagnostic = onDiagnostic is null
+            ? _ => { }
+            : message => { lock (diagnosticLock) { onDiagnostic(message); } };
+        _looseProbe = new LooseFileProbe(dataRoot);
+
+        var archivePaths = GetApplicableArchivePathsSafe(gameRelease, dataRoot);
+
+        var readers = new List<IArchiveReader>();
+        foreach (var archivePath in archivePaths)
+        {
+            // A corrupt or unsupported-format archive can throw here - one bad archive in the real
+            // Data folder must not abort the whole run.
+            try
+            {
+                var reader = Archive.CreateReader(gameRelease, archivePath);
+                readers.Add(reader);
+                _readerArchivePaths[reader] = archivePath.ToString();
+            }
+            catch (Exception ex)
+            {
+                _onDiagnostic($"Archive '{archivePath}' could not be opened and was skipped entirely - "
+                    + $"every file it would have provided falls back to a lower-priority source instead. "
+                    + $"{ex.GetType().Name}: {ex.Message}");
+            }
+        }
+        _archiveReaders = readers;
+    }
+
+    public bool Exists(string relativeDataPath)
+    {
+        if (_looseProbe.Exists(relativeDataPath))
+        {
+            return true;
+        }
+
+        return TryFindArchiveFile(relativeDataPath, out _, out _);
+    }
+
+    public Stream OpenRead(string relativeDataPath)
+    {
+        if (_looseProbe.Exists(relativeDataPath))
+        {
+            return _looseProbe.OpenRead(relativeDataPath);
+        }
+
+        if (TryFindArchiveFile(relativeDataPath, out var file, out var reader))
+        {
+            try
+            {
+                return file!.AsStream();
+            }
+            catch (ArchiveException) when (_readerArchivePaths.TryGetValue(reader!, out var archivePath)
+                && ManualArchiveExtractor.TryExtract(archivePath, file!, out var bytes))
+            {
+                return new MemoryStream(bytes!);
+            }
+        }
+
+        throw new FileNotFoundException($"'{relativeDataPath}' was not found loose or in any applicable archive.");
+    }
+
+    public IEnumerable<string> EnumerateFiles(string relativeFolder, string extension) =>
+        _looseProbe.EnumerateFiles(relativeFolder, extension);
+
+    private bool TryFindArchiveFile(string relativeDataPath, out IArchiveFile? file, out IArchiveReader? reader)
+    {
+        foreach (var candidateReader in _archiveReaders)
+        {
+            var index = GetOrBuildIndex(candidateReader);
+            if (index.TryGetValue(relativeDataPath, out var match))
+            {
+                file = match;
+                reader = candidateReader;
+                return true;
+            }
+        }
+
+        file = null;
+        reader = null;
+        return false;
+    }
+
+    // Shared across every mesh-processing thread once the main loop runs in parallel (AutoBlend), so
+    // the per-reader index cache is a ConcurrentDictionary built through GetOrAdd.
+    private Dictionary<string, IArchiveFile> GetOrBuildIndex(IArchiveReader reader) =>
+        _archiveIndexes.GetOrAdd(reader, BuildIndex);
+
+    private Dictionary<string, IArchiveFile> BuildIndex(IArchiveReader reader)
+    {
+        var index = new Dictionary<string, IArchiveFile>(StringComparer.OrdinalIgnoreCase);
+        try
+        {
+            foreach (var archiveFile in reader.Files)
+            {
+                // A handful of archives ship the same path under two different cases as distinct
+                // entries - first one wins, matching how the game itself only ever sees one at a time.
+                index.TryAdd(archiveFile.Path, archiveFile);
+            }
+        }
+        catch (Exception ex)
+        {
+            // A malformed/corrupt archive's own internal filename table can throw while being
+            // enumerated here. Whatever this archive already indexed before hitting the bad part
+            // stays usable - better than discarding it entirely - but nothing more from it will
+            // ever be found.
+            _readerArchivePaths.TryGetValue(reader, out var archivePath);
+            _onDiagnostic($"Archive '{archivePath ?? reader.ToString()}' stopped indexing partway through "
+                + $"(its own file listing is malformed past that point) - only what was already found in "
+                + $"it before this is usable. {ex.GetType().Name}: {ex.Message}");
+        }
+
+        return index;
+    }
+
+    /// <summary>
+    /// Mutagen's own Archive.GetApplicableArchivePaths sorts every matching archive by a priority
+    /// comparer that can throw NotImplementedException from deep inside Mutagen itself (reported
+    /// directly against a real MO2 modlist): two archives whose names collapse to the same
+    /// base+suffix pair after stripping a " - Suffix" segment reach a branch Mutagen never
+    /// implemented. TryFindArchiveFile only cares about which archives exist at all (first match
+    /// wins in whatever order they're returned) - it doesn't need Mutagen's own priority ordering -
+    /// so falling back to a plain, unsorted directory listing on failure keeps the whole run from
+    /// crashing over a dependency bug that has nothing to do with which files are actually being
+    /// looked up.
+    /// </summary>
+    private static IEnumerable<FilePath> GetApplicableArchivePathsSafe(GameRelease release, string dataRoot)
+    {
+        try
+        {
+            return Archive.GetApplicableArchivePaths(release, dataRoot).ToList();
+        }
+        catch (Exception)
+        {
+            var extension = Archive.GetExtension(release);
+            return Directory.Exists(dataRoot)
+                ? Directory.EnumerateFiles(dataRoot, "*" + extension).Select(path => (FilePath)path).ToList()
+                : Enumerable.Empty<FilePath>();
+        }
+    }
+
+    public void Dispose()
+    {
+        foreach (var reader in _archiveReaders)
+        {
+            (reader as IDisposable)?.Dispose();
+        }
+    }
+}
