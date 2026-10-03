@@ -23,6 +23,11 @@ The history of the two tools this one replaces lives in their own repositories
   seam fix) nudges a few colors by a few levels out of 255. On the test load order 15 cells (all from one
   grass-fix mod, 1.1/255 on average, 8.2/255 at most) stayed tinted while every neighbour was cleared.
   Only a mean difference above 16/255 per channel now counts as a mod's own paint job and is kept.
+- **`MissingModException` ("A referenced mod was not present on the load order being sorted against") when
+  writing the plugin**, e.g. with a Creation Club plugin loaded through Skyrim.ccc rather than plugins.txt
+  (reported on Nexus against Snow Fixer 1.2.14). Masters outside the active plugin list are slotted in right
+  after the game's base masters and the write is retried; if sorting is still impossible the plugin is
+  written with the default master order instead.
 
 ### Changed
 - A snow record only gets a mesh copy (and a plugin override) when one of the snow fixes actually
