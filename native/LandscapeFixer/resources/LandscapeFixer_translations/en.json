@@ -151,6 +151,10 @@
     },
     "snow": {
       "intro": "Every record whose EditorID or mesh path says snow can get its own copy of the winning mesh, with the fixes below applied to the copy only - the copy is kept only when something in the mesh actually changed, otherwise the record stays untouched."
+    },
+    "preferences": {
+      "tooltip": "Preferences (language, theme)",
+      "title": "Preferences"
     }
   },
   "progress": {
@@ -182,10 +186,6 @@
     "snow": {
       "title": "Snow",
       "description": "Snow record fixes: collision, decals, ice"
-    },
-    "options": {
-      "title": "Preferences",
-      "description": "Language and theme"
     }
   }
 }

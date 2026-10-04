@@ -31,8 +31,7 @@ private:
     std::filesystem::path m_exePath;
     std::vector<SFLocale::Language> m_languages;
 
-    wxChoice* m_languageChoice = nullptr;
-    wxChoice* m_themeChoice = nullptr;
+    int m_themeSelection = 0; // 0 system, 1 light, 2 dark
     wxTextCtrl* m_gameLocationTextbox = nullptr;
     wxChoice* m_gameTypeChoice = nullptr;
     wxTextCtrl* m_outputLocationTextbox = nullptr;
@@ -67,8 +66,7 @@ private:
     SectionCard* m_blendCard = nullptr;
     SectionCard* m_snowCard = nullptr;
 
-    void onLanguageChanged(wxCommandEvent&);
-    void onThemeChanged(wxCommandEvent&);
+    void onPreferences(wxCommandEvent&);
     void onLoadConfig(wxCommandEvent&);
     void onSaveConfigAs(wxCommandEvent&);
     void applyLoadedParams(const SFParams& params);

@@ -122,6 +122,12 @@ LauncherWindow::LauncherWindow(const SFParams& initParams, filesystem::path exeP
     const wxIcon appIcon(wxICON(IDI_ICON1));
     SetIcon(appIcon);
 
+    if (initParams.uiTheme == "light") {
+        m_themeSelection = 1;
+    } else if (initParams.uiTheme == "dark") {
+        m_themeSelection = 2;
+    }
+
     auto* mainSizer = new wxBoxSizer(wxVERTICAL);
 
     // Header banner - same treatment as AutoBlend's own launcher, gives the dialog an identity of
@@ -144,6 +150,17 @@ LauncherWindow::LauncherWindow(const SFParams& initParams, filesystem::path exeP
     headerSubtitle->SetForegroundColour(ACCENT_SOFT);
     headerTextSizer->Add(headerSubtitle, 0, wxTOP, 1);
     headerSizer->Add(headerTextSizer, 0, wxALIGN_CENTER_VERTICAL);
+    headerSizer->AddStretchSpacer(1);
+    auto* preferencesButton = new wxButton(headerPanel, wxID_ANY, wxString(wxUniChar(0x2699)), wxDefaultPosition, wxDefaultSize,
+        wxBU_EXACTFIT | wxBORDER_NONE);
+    wxFont gearFont = preferencesButton->GetFont();
+    gearFont.SetPointSize(gearFont.GetPointSize() + 8);
+    preferencesButton->SetFont(gearFont);
+    preferencesButton->SetBackgroundColour(ACCENT_DARK);
+    preferencesButton->SetForegroundColour(ACCENT_SOFT);
+    preferencesButton->SetToolTip(SFTr("launcher.preferences.tooltip", "Preferences (language, theme)"));
+    preferencesButton->Bind(wxEVT_BUTTON, &LauncherWindow::onPreferences, this);
+    headerSizer->Add(preferencesButton, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, 14);
     headerPanel->SetSizerAndFit(headerSizer);
     mainSizer->Add(headerPanel, 0, wxEXPAND);
 
@@ -182,14 +199,11 @@ LauncherWindow::LauncherWindow(const SFParams& initParams, filesystem::path exeP
         SFTr("card.blend.description", "Alpha test to blend, derived TextureSets, PBR"), true, initParams.enableBlend, false, refit);
     auto* snowCard = new SectionCard(pageScroll, SFTr("card.snow.title", "Snow"),
         SFTr("card.snow.description", "Snow record fixes: collision, decals, ice"), true, initParams.enableSnow, false, refit);
-    auto* optionsCard = new SectionCard(pageScroll, SFTr("card.options.title", "Preferences"),
-        SFTr("card.options.description", "Language and theme"), false, false, false, refit);
 
     wxPanel* setupPanel = setupCard->body();
     wxPanel* landscapePanel = landscapeCard->body();
     wxPanel* blendPanel = blendCard->body();
     wxPanel* snowPanel = snowCard->body();
-    wxPanel* optionsPanel = optionsCard->body();
     auto* setupSizer = new wxBoxSizer(wxVERTICAL);
     auto* landscapeSizer = new wxBoxSizer(wxVERTICAL);
     auto* blendSizer = new wxBoxSizer(wxVERTICAL);
@@ -593,52 +607,6 @@ LauncherWindow::LauncherWindow(const SFParams& initParams, filesystem::path exeP
     blendSizer->Add(blendListsRowSizer, 1, wxEXPAND | wxBOTTOM, BORDER_SIZE);
 
 
-    // "Options" tab - app-wide preferences (language, theme) rather than per-run settings, same
-    // split AutoBlend uses.
-    auto* optionsSizer = new wxBoxSizer(wxVERTICAL);
-
-    // Language selector - changing it immediately relaunches the window (see onLanguageChanged)
-    // rather than requiring a separate settings dialog/OK click.
-    optionsSizer->Add(makeSectionLabel(optionsPanel, SFTr("launcher.language.label", "Language")), 0,
-        wxLEFT | wxRIGHT | wxTOP, BORDER_SIZE);
-
-    m_languages = SFLocale::getAvailableLanguages();
-    wxArrayString languageChoices;
-    int selectedLanguageIndex = 0;
-    for (size_t i = 0; i < m_languages.size(); i++) {
-        languageChoices.Add(m_languages.at(i).displayName);
-        if (m_languages.at(i).code == SFLocale::getCurrentLanguage()) {
-            selectedLanguageIndex = static_cast<int>(i);
-        }
-    }
-    m_languageChoice = new wxChoice(optionsPanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, languageChoices);
-    if (!m_languages.empty()) {
-        m_languageChoice->SetSelection(selectedLanguageIndex);
-    }
-    m_languageChoice->Bind(wxEVT_CHOICE, &LauncherWindow::onLanguageChanged, this);
-    optionsSizer->Add(m_languageChoice, 0, wxEXPAND | wxALL, BORDER_SIZE);
-
-    // Theme selector - same immediate-relaunch pattern as the language selector, since applying a
-    // wxWidgets appearance change requires it to be set before the window it affects is created.
-    optionsSizer->Add(makeSectionLabel(optionsPanel, SFTr("launcher.theme.label", "Theme")), 0,
-        wxLEFT | wxRIGHT | wxTOP, BORDER_SIZE);
-
-    wxArrayString themeChoices;
-    themeChoices.Add(SFTr("launcher.theme.system", "System"));
-    themeChoices.Add(SFTr("launcher.theme.light", "Light"));
-    themeChoices.Add(SFTr("launcher.theme.dark", "Dark"));
-    m_themeChoice = new wxChoice(optionsPanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, themeChoices);
-    int selectedThemeIndex = 0;
-    if (initParams.uiTheme == "light") {
-        selectedThemeIndex = 1;
-    } else if (initParams.uiTheme == "dark") {
-        selectedThemeIndex = 2;
-    }
-    m_themeChoice->SetSelection(selectedThemeIndex);
-    m_themeChoice->Bind(wxEVT_CHOICE, &LauncherWindow::onThemeChanged, this);
-    optionsSizer->Add(m_themeChoice, 0, wxEXPAND | wxALL, BORDER_SIZE);
-
-    optionsPanel->SetSizer(optionsSizer);
 
     for (const auto& panelAndSizer : { std::pair<wxPanel*, wxBoxSizer*> { setupPanel, setupSizer },
              std::pair<wxPanel*, wxBoxSizer*> { landscapePanel, landscapeSizer },
@@ -647,7 +615,7 @@ LauncherWindow::LauncherWindow(const SFParams& initParams, filesystem::path exeP
         panelAndSizer.first->SetSizer(panelAndSizer.second);
     }
 
-    for (auto* card : { setupCard, landscapeCard, blendCard, snowCard, optionsCard }) {
+    for (auto* card : { setupCard, landscapeCard, blendCard, snowCard }) {
         pageSizer->Add(card, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 12);
     }
     pageSizer->AddSpacer(12);
@@ -660,7 +628,7 @@ LauncherWindow::LauncherWindow(const SFParams& initParams, filesystem::path exeP
     char* expandAll = nullptr;
     size_t expandAllLength = 0;
     if (_dupenv_s(&expandAll, &expandAllLength, "LANDSCAPEFIXER_TAB") == 0 && expandAll != nullptr) {
-        for (auto* card : { landscapeCard, blendCard, snowCard, optionsCard }) {
+        for (auto* card : { landscapeCard, blendCard, snowCard }) {
             card->setExpanded(true);
         }
         SetSize(wxSize(780, 2400));
@@ -716,7 +684,7 @@ LauncherWindow::LauncherWindow(const SFParams& initParams, filesystem::path exeP
 void LauncherWindow::getParams(SFParams& outParams) const
 {
     outParams.uiLanguage = SFLocale::getCurrentLanguage();
-    switch (m_themeChoice->GetSelection()) {
+    switch (m_themeSelection) {
     case 1:
         outParams.uiTheme = "light";
         break;
@@ -792,30 +760,62 @@ void LauncherWindow::getParams(SFParams& outParams) const
     readListCtrl(m_autoGenerateAllowlistCtrl, outParams.autoGenerateAllowlist);
 }
 
-void LauncherWindow::onLanguageChanged([[maybe_unused]] wxCommandEvent& event)
+// Language and theme live in a small dialog opened from the gear in the header: they are app-wide
+// preferences, not part of a run's settings. Picking a different value closes the dialog and relaunches
+// the launcher (language: rebuilt in place; theme: a full process restart, since wx's MSW dark mode support
+// is a one-way switch once enabled for a process - see main.cpp's handling of RESULT_RESTART).
+void LauncherWindow::onPreferences([[maybe_unused]] wxCommandEvent& event)
 {
-    const int selection = m_languageChoice->GetSelection();
-    if (selection == wxNOT_FOUND) {
+    wxDialog dialog(this, wxID_ANY, SFTr("launcher.preferences.title", "Preferences"), wxDefaultPosition, wxDefaultSize,
+        wxDEFAULT_DIALOG_STYLE);
+    auto* sizer = new wxBoxSizer(wxVERTICAL);
+
+    sizer->Add(makeSectionLabel(&dialog, SFTr("launcher.language.label", "Language")), 0, wxLEFT | wxRIGHT | wxTOP, 12);
+    m_languages = SFLocale::getAvailableLanguages();
+    wxArrayString languageChoices;
+    int selectedLanguageIndex = 0;
+    for (size_t i = 0; i < m_languages.size(); i++) {
+        languageChoices.Add(m_languages.at(i).displayName);
+        if (m_languages.at(i).code == SFLocale::getCurrentLanguage()) {
+            selectedLanguageIndex = static_cast<int>(i);
+        }
+    }
+    auto* languageChoice = new wxChoice(&dialog, wxID_ANY, wxDefaultPosition, wxSize(260, -1), languageChoices);
+    if (!m_languages.empty()) {
+        languageChoice->SetSelection(selectedLanguageIndex);
+    }
+    sizer->Add(languageChoice, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 12);
+
+    sizer->Add(makeSectionLabel(&dialog, SFTr("launcher.theme.label", "Theme")), 0, wxLEFT | wxRIGHT | wxTOP, 12);
+    wxArrayString themeChoices;
+    themeChoices.Add(SFTr("launcher.theme.system", "System"));
+    themeChoices.Add(SFTr("launcher.theme.light", "Light"));
+    themeChoices.Add(SFTr("launcher.theme.dark", "Dark"));
+    auto* themeChoice = new wxChoice(&dialog, wxID_ANY, wxDefaultPosition, wxDefaultSize, themeChoices);
+    themeChoice->SetSelection(m_themeSelection);
+    sizer->Add(themeChoice, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 12);
+
+    sizer->Add(new wxButton(&dialog, wxID_OK, SFTr("common.close", "Close")), 0, wxALIGN_RIGHT | wxALL, 12);
+    dialog.SetSizerAndFit(sizer);
+    dialog.ShowModal();
+
+    // Applied after the dialog is gone, so the relaunch is requested from the launcher itself.
+    if (themeChoice->GetSelection() != m_themeSelection) {
+        m_themeSelection = themeChoice->GetSelection();
+        commitPendingListEdits();
+        EndModal(RESULT_RESTART);
         return;
     }
 
-    const auto& selectedLang = m_languages.at(static_cast<size_t>(selection));
-    if (selectedLang.code == SFLocale::getCurrentLanguage()) {
-        return;
+    const int languageSelection = languageChoice->GetSelection();
+    if (languageSelection != wxNOT_FOUND) {
+        const auto& selectedLang = m_languages.at(static_cast<size_t>(languageSelection));
+        if (selectedLang.code != SFLocale::getCurrentLanguage()) {
+            commitPendingListEdits();
+            SFLocale::init(m_exePath / "LandscapeFixer_translations", selectedLang.code);
+            EndModal(RESULT_RELAUNCH);
+        }
     }
-
-    commitPendingListEdits();
-    SFLocale::init(m_exePath / "LandscapeFixer_translations", selectedLang.code);
-    EndModal(RESULT_RELAUNCH);
-}
-
-void LauncherWindow::onThemeChanged([[maybe_unused]] wxCommandEvent& event)
-{
-    // Unlike a language change, this needs a full process restart, not just an internal rebuild -
-    // wx's MSW dark mode support is a one-way switch once enabled for a process. See main.cpp's
-    // handling of RESULT_RESTART.
-    commitPendingListEdits();
-    EndModal(RESULT_RESTART);
 }
 
 void LauncherWindow::onBrowseGameLocation([[maybe_unused]] wxCommandEvent& event)

@@ -151,6 +151,10 @@
     },
     "snow": {
       "intro": "Chaque record dont l'EditorID ou le chemin de mesh évoque la neige peut recevoir sa propre copie du mesh gagnant, avec les correctifs ci-dessous appliqués à la copie seulement - la copie n'est gardée que si quelque chose a réellement changé dans le mesh, sinon le record reste intact."
+    },
+    "preferences": {
+      "tooltip": "Préférences (langue, thème)",
+      "title": "Préférences"
     }
   },
   "progress": {
@@ -182,10 +186,6 @@
     "snow": {
       "title": "Neige",
       "description": "Correctifs des records de neige : collision, decals, glace"
-    },
-    "options": {
-      "title": "Préférences",
-      "description": "Langue et thème"
     }
   }
 }
