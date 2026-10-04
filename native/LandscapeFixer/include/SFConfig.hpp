@@ -122,9 +122,6 @@ struct SFParams {
         L"ice", L"frozen", L"road",
     };
 
-    /// @brief Also generates a PBR sibling (Height/RMAOS) for landscape textures that have none.
-    bool generatePbrSlots = false;
-
     /// @brief Source diffuse textures a missing statics/blend sibling may be synthesized for. Mirrors
     /// LandscapeCommon.Configuration.AutoGenerateAllowlistDefaults - both sides must stay in lockstep.
     std::vector<std::wstring> autoGenerateAllowlist {

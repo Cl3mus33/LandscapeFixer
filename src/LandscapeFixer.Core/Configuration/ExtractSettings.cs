@@ -159,7 +159,9 @@ public sealed class ExtractSettings
     /// <summary>Synthesizes a missing statics/blend sibling for an allowlisted landscape texture.</summary>
     public bool AutoGenerateMissingStatics { get; set; } = true;
 
-    /// <summary>Also generates a PBR sibling (Height/RMAOS) for textures that have none.</summary>
+    /// <summary>No longer used: a PBR sibling of a landscape texture is always looked for (Skyrim SE only), so the
+    /// PBR blend texture and the json PG Patcher needs to convert it are always generated. Kept so that older
+    /// settings files still load.</summary>
     public bool GeneratePbrSlots { get; set; }
 
     public List<string> AutoGenerateAllowlist { get; set; } = AutoGenerateAllowlistDefaults.Values.ToList();

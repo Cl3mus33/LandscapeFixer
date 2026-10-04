@@ -61,7 +61,6 @@ private:
     PGModifiableListCtrl* m_blendEditorIdKeywordsCtrl = nullptr;
     PGModifiableListCtrl* m_autoGenerateAllowlistCtrl = nullptr;
     wxDialog* m_autoGenerateAllowlistDialog = nullptr;
-    wxCheckBox* m_generatePbrSlotsCheckbox = nullptr;
     wxButton* m_okButton = nullptr;
 
     void onLanguageChanged(wxCommandEvent&);
@@ -72,8 +71,6 @@ private:
     void onBrowseGameLocation(wxCommandEvent&);
     void onBrowseOutputLocation(wxCommandEvent&);
     void onModManagerChanged(wxCommandEvent&);
-    void onGameTypeChanged(wxCommandEvent&);
-    void updateGameTypeFieldState();
     void onEditAllowlistButtonPressed(wxCommandEvent&);
     void onBrowseMo2Instance(wxCommandEvent&);
     void onMo2InstancePathChanged(wxCommandEvent&);

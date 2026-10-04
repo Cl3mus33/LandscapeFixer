@@ -135,9 +135,6 @@
       "label": "Mots-clés EditorID exclus (Blend)",
       "help": "Les records dont l'EditorID contient un de ces mots (insensible à la casse) ne sont jamais touchés par la passe Blend. Clic droit pour ajouter/supprimer des lignes."
     },
-    "generatePbrSlots": {
-      "label": "Générer les slots PBR"
-    },
     "autoGenerateAllowlist": {
       "label": "Liste autorisée de génération automatique",
       "editButton": "Modifier la liste...",
