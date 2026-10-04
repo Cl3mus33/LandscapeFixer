@@ -7,7 +7,7 @@
 #include <LandscapeFixer.NativeExportNE.h>
 #include <nlohmann/json.hpp>
 
-#include <wx/notebook.h>
+#include "GUI/components/SectionCard.hpp"
 #include <wx/scrolwin.h>
 #include <wx/statline.h>
 
@@ -28,6 +28,21 @@ auto fromIntPtr(intptr_t ptr) -> string
     return ptr == 0 ? string {} : string(reinterpret_cast<const char*>(ptr));
 }
 
+// The last section label made: a help text that follows it becomes its tooltip (with an "i" mark on the label)
+// instead of a paragraph of permanent text.
+wxWindow* gHelpTarget = nullptr;
+
+void attachHelp(const wxString& text)
+{
+    if (gHelpTarget == nullptr) {
+        return;
+    }
+    gHelpTarget->SetToolTip(text);
+    if (auto* label = wxDynamicCast(gHelpTarget, wxStaticText); label != nullptr && !label->GetLabel().EndsWith(wxString(wxUniChar(0x24D8)))) {
+        label->SetLabel(label->GetLabel() + L"  " + wxString(wxUniChar(0x24D8)));
+    }
+}
+
 auto makeSectionLabel(wxWindow* parent, const wxString& text) -> wxStaticText*
 {
     auto* label = new wxStaticText(parent, wxID_ANY, text);
@@ -35,6 +50,7 @@ auto makeSectionLabel(wxWindow* parent, const wxString& text) -> wxStaticText*
     font.SetWeight(wxFONTWEIGHT_BOLD);
     label->SetFont(font);
     label->SetForegroundColour(ACCENT);
+    gHelpTarget = label;
     return label;
 }
 }
@@ -67,6 +83,7 @@ auto makeListCtrl(wxWindow* parent, const wxString& column, const vector<wstring
 {
     auto* ctrl = new PGModifiableListCtrl(
         parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLC_REPORT | wxLC_EDIT_LABELS | wxLC_NO_HEADER);
+    ctrl->SetMinSize(wxSize(-1, 110));
     ctrl->AppendColumn(column, wxLIST_FORMAT_LEFT, wxLIST_AUTOSIZE_USEHEADER);
     ctrl->SetColumnWidth(0, wxLIST_AUTOSIZE_USEHEADER);
     fillListCtrl(ctrl, values);
@@ -99,7 +116,7 @@ static void forwardChoiceWheelToScrollPanel(wxWindow* root, wxScrolledWindow* sc
 }
 
 LauncherWindow::LauncherWindow(const SFParams& initParams, filesystem::path exePath)
-    : wxDialog(nullptr, wxID_ANY, "Landscape Fixer", wxDefaultPosition, wxSize(760, 680), wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+    : wxDialog(nullptr, wxID_ANY, "Landscape Fixer", wxDefaultPosition, wxSize(780, 640), wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
     , m_exePath(std::move(exePath))
 {
     const wxIcon appIcon(wxICON(IDI_ICON1));
@@ -130,61 +147,57 @@ LauncherWindow::LauncherWindow(const SFParams& initParams, filesystem::path exeP
     headerPanel->SetSizerAndFit(headerSizer);
     mainSizer->Add(headerPanel, 0, wxEXPAND);
 
-    auto* notebook = new wxNotebook(this, wxID_ANY);
+    // One scrolling page of collapsible cards instead of tabs: Setup stays open, every other card starts
+    // folded; the Blend and Snow cards carry their own on/off checkbox, which unfolds the card when ticked.
+    auto* pageScroll = new wxScrolledWindow(this, wxID_ANY);
+    pageScroll->SetScrollRate(0, 20);
+    auto* pageSizer = new wxBoxSizer(wxVERTICAL);
+    auto refit = [pageScroll]() {
+        pageScroll->FitInside();
+        pageScroll->Layout();
+    };
 
-    // "General" tab - the actual per-run settings, same split AutoBlend uses between per-run
-    // settings and app-wide preferences. A plain wxPanel here used to mean the dialog itself grew
-    // to fit however tall this tab's content got (SetSizerAndFit below) - fine while there were only
-    // a handful of settings, but every feature added since (Config Profile, Game Type, Hide Decal
-    // Shapes, Ice Snow Material, ...) made it taller, and reported
-    // directly on Nexus: on a smaller display the resulting window is taller than the screen itself,
-    // with no way to reach the controls (or even the Start button) below the fold - dragging the
-    // window's own edges can't make it bigger than the screen. A wxScrolledWindow instead scrolls
-    // its own content vertically, so the dialog itself can stay a fixed, always-on-screen size no
-    // matter how many settings this tab ends up with.
-    // Tabs, in the order a user works through them: Setup (where things are) -> Landscape (what gets
-    // touched) -> Blend -> Snow -> Options. Every tab scrolls on its own, so the dialog itself can stay a
-    // fixed, always-on-screen size however many settings a tab ends up with (reported directly on Nexus:
-    // on a small display a taller-than-screen window left the Start button unreachable).
     constexpr int HELP_WRAP_PAIRED = 300;
     constexpr int HELP_WRAP_BLEND = 300;
 
-    auto* setupPanel = new wxScrolledWindow(notebook);
-    setupPanel->SetScrollRate(0, 30);
+    const bool setupNeedsAttention = initParams.gameLocation.empty() || initParams.outputLocation.empty();
+    auto* setupCard = new SectionCard(pageScroll, SFTr("card.setup.title", "Setup"),
+        SFTr("card.setup.description", "Game, mod manager and output folder"), false, false, setupNeedsAttention, refit);
+    {
+        // Once the setup is filled in it folds away and its header says what it holds, so a returning user
+        // sees every card at a glance.
+        wxString summary = initParams.gameType == SFGameType::SkyrimLE ? "Skyrim LE" : "Skyrim SE";
+        summary += initParams.modManager == SFModManagerType::ModOrganizer2 ? wxString(L"  ·  MO2: ") + wxString(initParams.mo2ProfileName)
+                                                                            : wxString(L"  ·  Vortex / no manager");
+        if (!initParams.outputLocation.empty()) {
+            summary += wxString(L"  ·  ") + wxString(filesystem::path(initParams.outputLocation).filename().wstring());
+        }
+        if (!setupNeedsAttention) {
+            setupCard->setDescription(summary);
+        }
+    }
+    auto* landscapeCard = new SectionCard(pageScroll, SFTr("card.landscape.title", "Landscape"),
+        SFTr("card.landscape.description", "Which meshes are touched, and the vertex colors"), false, false, false, refit);
+    auto* blendCard = new SectionCard(pageScroll, SFTr("card.blend.title", "Blend"),
+        SFTr("card.blend.description", "Alpha test to blend, derived TextureSets, PBR"), true, initParams.enableBlend, false, refit);
+    auto* snowCard = new SectionCard(pageScroll, SFTr("card.snow.title", "Snow"),
+        SFTr("card.snow.description", "Snow record fixes: collision, decals, ice"), true, initParams.enableSnow, false, refit);
+    auto* optionsCard = new SectionCard(pageScroll, SFTr("card.options.title", "Preferences"),
+        SFTr("card.options.description", "Language and theme"), false, false, false, refit);
+
+    wxPanel* setupPanel = setupCard->body();
+    wxPanel* landscapePanel = landscapeCard->body();
+    wxPanel* blendPanel = blendCard->body();
+    wxPanel* snowPanel = snowCard->body();
+    wxPanel* optionsPanel = optionsCard->body();
     auto* setupSizer = new wxBoxSizer(wxVERTICAL);
-
-    auto* landscapePanel = new wxScrolledWindow(notebook);
-    landscapePanel->SetScrollRate(0, 30);
     auto* landscapeSizer = new wxBoxSizer(wxVERTICAL);
-
-    auto* snowPanel = new wxScrolledWindow(notebook);
-    snowPanel->SetScrollRate(0, 30);
+    auto* blendSizer = new wxBoxSizer(wxVERTICAL);
     auto* snowSizer = new wxBoxSizer(wxVERTICAL);
-
-    auto* setupIntroText = new wxStaticText(setupPanel, wxID_ANY,
-        SFTr("launcher.setup.intro", "Where your game, your mod manager and the output folder are."));
-    setupIntroText->Wrap(500);
-    setupSizer->Add(setupIntroText, 0, wxALL, BORDER_SIZE * 2);
-
-    auto* landscapeIntroText = new wxStaticText(landscapePanel, wxID_ANY,
-        SFTr("launcher.intro",
-            "What Landscape Fixer is allowed to touch: only meshes inside a landscape folder, plus the vertex "
-            "color clean-up of the terrain and of its meshes. The Blend and Snow tabs hold the options of each "
-            "pass; everything is written to one plugin, and PG Patcher is left to do the PBR conversion afterwards."));
-    landscapeIntroText->Wrap(500);
-    landscapeSizer->Add(landscapeIntroText, 0, wxALL, BORDER_SIZE * 2);
-
-    auto* snowIntroText = new wxStaticText(snowPanel, wxID_ANY,
-        SFTr("launcher.snow.intro",
-            "Every record whose EditorID or mesh path says snow can get its own copy of the winning mesh, with "
-            "the fixes below applied to the copy only - the copy is kept only when something in the mesh "
-            "actually changed, otherwise the record stays untouched."));
-    snowIntroText->Wrap(500);
-    snowSizer->Add(snowIntroText, 0, wxALL, BORDER_SIZE * 2);
-
-    m_enableSnowCheckbox = new wxCheckBox(snowPanel, wxID_ANY, SFTr("launcher.passes.snow", "Run the Snow pass"));
-    m_enableSnowCheckbox->SetValue(initParams.enableSnow);
-    snowSizer->Add(m_enableSnowCheckbox, 0, wxLEFT | wxRIGHT | wxBOTTOM, BORDER_SIZE * 2);
+    m_blendCard = blendCard;
+    m_snowCard = snowCard;
+    m_enableBlendCheckbox = blendCard->toggle();
+    m_enableSnowCheckbox = snowCard->toggle();
 
     // Config profile - a single install (e.g. shared outside any one modlist) can still keep
     // distinct settings per modlist by saving/loading separate JSON files here, instead of relying
@@ -296,22 +309,16 @@ LauncherWindow::LauncherWindow(const SFParams& initParams, filesystem::path exeP
     m_restrictToLandscapeCheckbox->SetValue(initParams.restrictToLandscapeFolders);
     landscapeSizer->Add(m_restrictToLandscapeCheckbox, 0, wxLEFT | wxTOP, BORDER_SIZE * 2);
 
-    auto* scopeHelpText = new wxStaticText(landscapePanel, wxID_ANY,
-        SFTr("launcher.scope.help",
+    attachHelp(SFTr("launcher.scope.help",
             "Any mesh whose path has a \"landscape\" folder (Meshes\\Landscape, Meshes\\DLC01\\Landscape, "
             "Meshes\\_ResourcePack\\Landscape, ...) is in scope. Terrain bases, campfires and other meshes "
             "outside those folders are skipped unless they match a pattern below."));
-    scopeHelpText->Wrap(HELP_WRAP_PAIRED * 2);
-    landscapeSizer->Add(scopeHelpText, 0, wxLEFT | wxRIGHT | wxTOP, BORDER_SIZE * 2);
 
     landscapeSizer->Add(makeSectionLabel(landscapePanel, SFTr("launcher.meshAddList.label", "Additional Meshes")), 0,
         wxLEFT | wxRIGHT | wxTOP, BORDER_SIZE * 2);
-    auto* meshAddListHelpText = new wxStaticText(landscapePanel, wxID_ANY,
-        SFTr("launcher.meshAddList.help",
+    attachHelp(SFTr("launcher.meshAddList.help",
             "Meshes outside a landscape folder to process anyway. Wildcards (*) allowed, e.g. "
             "\"*\\whiterun\\wrterrain\\*\". Right click to add/remove rows."));
-    meshAddListHelpText->Wrap(HELP_WRAP_PAIRED * 2);
-    landscapeSizer->Add(meshAddListHelpText, 0, wxLEFT | wxRIGHT | wxTOP, BORDER_SIZE * 2);
 
     m_meshAddListCtrl = makeListCtrl(landscapePanel, SFTr("launcher.meshAddList.column", "Pattern"), initParams.meshAddList);
     m_meshAddListCtrl->SetMinSize(wxSize(-1, 90));
@@ -328,12 +335,9 @@ LauncherWindow::LauncherWindow(const SFParams& initParams, filesystem::path exeP
     landscapeColumnSizer->Add(makeSectionLabel(landscapePanel, SFTr("launcher.landscapeVertexColors.label", "Landscape Vertex Colors")), 0,
         wxTOP, BORDER_SIZE);
 
-    auto* landscapeHelpText = new wxStaticText(landscapePanel, wxID_ANY,
-        SFTr("launcher.landscapeVertexColors.help",
+    attachHelp(SFTr("launcher.landscapeVertexColors.help",
             "Clears baked-in vertex color tinting on terrain (LAND) records, so they render "
             "standalone instead of carrying leftover color grading meant for a different look."));
-    landscapeHelpText->Wrap(HELP_WRAP_PAIRED);
-    landscapeColumnSizer->Add(landscapeHelpText, 0, wxTOP, BORDER_SIZE);
 
     m_landscapeModeNoneRadio = new wxRadioButton(landscapePanel, wxID_ANY,
         SFTr("launcher.landscapeVertexColors.none", "Don't touch landscape vertex colors"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP);
@@ -366,13 +370,10 @@ LauncherWindow::LauncherWindow(const SFParams& initParams, filesystem::path exeP
     meshVertexColumnSizer->Add(makeSectionLabel(landscapePanel, SFTr("launcher.meshVertexColors.label", "Mesh Vertex Colors")), 0,
         wxTOP, BORDER_SIZE);
 
-    auto* meshVertexColorsHelpText = new wxStaticText(landscapePanel, wxID_ANY,
-        SFTr("launcher.meshVertexColors.help",
+    attachHelp(SFTr("launcher.meshVertexColors.help",
             "Clears baked-in vertex color tinting on landscape-folder meshes (rocks, cliffs, "
             "icebergs, ...), including DLC variants under DLC01\\Landscape\\, DLC02\\Landscape\\, "
             "etc."));
-    meshVertexColorsHelpText->Wrap(HELP_WRAP_PAIRED);
-    meshVertexColumnSizer->Add(meshVertexColorsHelpText, 0, wxTOP, BORDER_SIZE);
 
     m_meshVertexColorModeNoneRadio = new wxRadioButton(landscapePanel, wxID_ANY,
         SFTr("launcher.meshVertexColors.none", "Don't touch mesh vertex colors"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP);
@@ -414,13 +415,10 @@ LauncherWindow::LauncherWindow(const SFParams& initParams, filesystem::path exeP
     collisionColumnSizer->Add(makeSectionLabel(snowPanel, SFTr("launcher.collisionMaterial.label", "Collision Material (Footstep Sounds)")), 0,
         wxTOP, BORDER_SIZE);
 
-    auto* collisionMaterialHelpText = new wxStaticText(snowPanel, wxID_ANY,
-        SFTr("launcher.collisionMaterial.help",
+    attachHelp(SFTr("launcher.collisionMaterial.help",
             "Remaps collision materials on the generated snow meshes toward their snow equivalent "
             "(currently just Dirt/Grass -> Snow) so footstep sounds match the snowy visual. Works "
             "per collision chunk, so unrelated materials in the same mesh are left alone."));
-    collisionMaterialHelpText->Wrap(HELP_WRAP_PAIRED);
-    collisionColumnSizer->Add(collisionMaterialHelpText, 0, wxTOP, BORDER_SIZE);
 
     m_collisionMaterialModeNoneRadio = new wxRadioButton(snowPanel, wxID_ANY,
         SFTr("launcher.collisionMaterial.none", "Don't touch collision materials"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP);
@@ -454,14 +452,11 @@ LauncherWindow::LauncherWindow(const SFParams& initParams, filesystem::path exeP
     m_hideDecalShapesCheckbox->SetValue(initParams.hideDecalShapes);
     optionsColumnSizer->Add(m_hideDecalShapesCheckbox, 0, wxTOP, BORDER_SIZE);
 
-    auto* hideDecalShapesHelpText = new wxStaticText(snowPanel, wxID_ANY,
-        SFTr("launcher.hideDecalShapes.help",
+    attachHelp(SFTr("launcher.hideDecalShapes.help",
             "Avoids z-fighting with Skyrim's own decal-based dynamic snow shaders by hiding any shape "
             "textured with \"Rocks01\"/\"SnowRocks01\", on mountain/rock/tundra meshes only. Hides the "
             "shape instead of deleting it, so no plugin changes are needed. Does not affect DirtCliffs "
             "meshes."));
-    hideDecalShapesHelpText->Wrap(HELP_WRAP_PAIRED);
-    optionsColumnSizer->Add(hideDecalShapesHelpText, 0, wxTOP, BORDER_SIZE);
 
     // Ice snow material removal - clears STAT.DNAM's Material link on every static that points at
     // SnowMaterialGlacier/SnowMaterialGlacierSlab, so no projected snow covers glaciers/ice.
@@ -474,13 +469,10 @@ LauncherWindow::LauncherWindow(const SFParams& initParams, filesystem::path exeP
     m_removeIceSnowMaterialCheckbox->SetValue(initParams.removeIceSnowMaterial);
     optionsColumnSizer->Add(m_removeIceSnowMaterialCheckbox, 0, wxTOP, BORDER_SIZE);
 
-    auto* removeIceSnowMaterialHelpText = new wxStaticText(snowPanel, wxID_ANY,
-        SFTr("launcher.removeIceSnowMaterial.help",
+    attachHelp(SFTr("launcher.removeIceSnowMaterial.help",
             "Clears the SnowMaterialGlacier / SnowMaterialGlacierSlab Material Object from every static "
             "that uses it, so no snow is projected on glaciers and ice. Only changes LandscapeFixer.esp - no "
             "mesh is modified, and the ice's own shader material is left alone."));
-    removeIceSnowMaterialHelpText->Wrap(HELP_WRAP_PAIRED);
-    optionsColumnSizer->Add(removeIceSnowMaterialHelpText, 0, wxTOP, BORDER_SIZE);
 
     collisionOptionsRowSizer->Add(collisionColumnSizer, 1, wxEXPAND | wxLEFT | wxRIGHT, BORDER_SIZE);
     collisionOptionsRowSizer->Add(optionsColumnSizer, 1, wxEXPAND | wxLEFT | wxRIGHT, BORDER_SIZE);
@@ -495,12 +487,9 @@ LauncherWindow::LauncherWindow(const SFParams& initParams, filesystem::path exeP
     meshBlacklistColumnSizer->Add(makeSectionLabel(snowPanel, SFTr("launcher.meshBlacklist.label", "Snow Mesh Blacklist")), 0,
         wxTOP, BORDER_SIZE);
 
-    auto* meshBlacklistHelpText = new wxStaticText(snowPanel, wxID_ANY,
-        SFTr("launcher.meshBlacklist.help",
+    attachHelp(SFTr("launcher.meshBlacklist.help",
             "Meshes matching a rule here are never duplicated or patched. Wildcards (*) allowed, "
             "e.g. \"*\\trees\\*\". Right click to add/remove rows."));
-    meshBlacklistHelpText->Wrap(HELP_WRAP_PAIRED);
-    meshBlacklistColumnSizer->Add(meshBlacklistHelpText, 0, wxTOP, BORDER_SIZE);
 
     m_meshBlacklistCtrl = new PGModifiableListCtrl(
         snowPanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLC_REPORT | wxLC_EDIT_LABELS | wxLC_NO_HEADER);
@@ -519,12 +508,9 @@ LauncherWindow::LauncherWindow(const SFParams& initParams, filesystem::path exeP
     editorIdKeywordsColumnSizer->Add(makeSectionLabel(snowPanel, SFTr("launcher.editorIdKeywords.label", "Snow EditorID Blacklist Keywords")), 0,
         wxTOP, BORDER_SIZE);
 
-    auto* editorIdKeywordsHelpText = new wxStaticText(snowPanel, wxID_ANY,
-        SFTr("launcher.editorIdKeywords.help",
+    attachHelp(SFTr("launcher.editorIdKeywords.help",
             "Records whose EditorID contains one of these words (case-insensitive) are skipped "
             "entirely - useful for excluding false-positive matches. Right click to add/remove rows."));
-    editorIdKeywordsHelpText->Wrap(HELP_WRAP_PAIRED);
-    editorIdKeywordsColumnSizer->Add(editorIdKeywordsHelpText, 0, wxTOP, BORDER_SIZE);
 
     m_editorIdKeywordsCtrl = new PGModifiableListCtrl(
         snowPanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLC_REPORT | wxLC_EDIT_LABELS | wxLC_NO_HEADER);
@@ -544,47 +530,15 @@ LauncherWindow::LauncherWindow(const SFParams& initParams, filesystem::path exeP
     blacklistRowSizer->Add(editorIdKeywordsColumnSizer, 1, wxEXPAND | wxLEFT | wxRIGHT, BORDER_SIZE);
     snowSizer->Add(blacklistRowSizer, 1, wxEXPAND | wxBOTTOM, BORDER_SIZE);
 
-    for (const auto& panelAndSizer : { std::pair<wxScrolledWindow*, wxBoxSizer*> { setupPanel, setupSizer },
-             std::pair<wxScrolledWindow*, wxBoxSizer*> { landscapePanel, landscapeSizer },
-             std::pair<wxScrolledWindow*, wxBoxSizer*> { snowPanel, snowSizer } }) {
-        panelAndSizer.first->SetSizer(panelAndSizer.second);
-        panelAndSizer.first->FitInside();
-        forwardChoiceWheelToScrollPanel(panelAndSizer.first, panelAndSizer.first);
-        // Without a capped minimum size the dialog would ask the tab for its full unscrolled height
-        // and defeat the scrolling just set up.
-        panelAndSizer.first->SetMinSize(wxSize(-1, 200));
-    }
-    notebook->AddPage(setupPanel, SFTr("launcher.tab.setup", "Setup"));
-    notebook->AddPage(landscapePanel, SFTr("launcher.tab.landscape", "Landscape"));
-
-    // "Blend" tab - options of the blend pass (the former AutoBlend): which textures may get a
-    // synthesized statics sibling, whether PBR slots are generated, and what the pass leaves alone.
-    auto* blendPanel = new wxScrolledWindow(notebook);
-    blendPanel->SetScrollRate(0, 30);
-    auto* blendSizer = new wxBoxSizer(wxVERTICAL);
-
-    auto* blendIntroText = new wxStaticText(blendPanel, wxID_ANY,
-        SFTr("launcher.blend.intro",
-            "The blend pass flips alpha test to alpha blend on landscape meshes whose textures have a "
-            "statics/blend sibling, in place at the mesh's own path, and gives the records that show such a "
-            "texture a derived TextureSet. Textures without a sibling can get one generated automatically."));
-    blendIntroText->Wrap(500);
-    blendSizer->Add(blendIntroText, 0, wxALL, BORDER_SIZE * 2);
-
-    m_enableBlendCheckbox = new wxCheckBox(blendPanel, wxID_ANY, SFTr("launcher.passes.blend", "Run the Blend pass"));
-    m_enableBlendCheckbox->SetValue(initParams.enableBlend);
-    blendSizer->Add(m_enableBlendCheckbox, 0, wxLEFT | wxRIGHT | wxBOTTOM, BORDER_SIZE * 2);
 
     m_generatePbrSlotsCheckbox = new wxCheckBox(blendPanel, wxID_ANY,
         SFTr("launcher.generatePbrSlots.label", "Generate PBR slots"));
     m_generatePbrSlotsCheckbox->SetValue(initParams.generatePbrSlots);
     blendSizer->Add(m_generatePbrSlotsCheckbox, 0, wxLEFT | wxRIGHT | wxTOP, BORDER_SIZE * 2);
+    gHelpTarget = m_generatePbrSlotsCheckbox;
 
-    auto* generatePbrSlotsHelpText = new wxStaticText(blendPanel, wxID_ANY,
-        SFTr("launcher.generatePbrSlots.help",
+    attachHelp(SFTr("launcher.generatePbrSlots.help",
             "Needed when a PBR texture pack is installed: generates the PBR version of each blend texture and the json PG Patcher uses to convert it. Left off, the blend areas show the low-resolution vanilla texture."));
-    generatePbrSlotsHelpText->Wrap(500);
-    blendSizer->Add(generatePbrSlotsHelpText, 0, wxLEFT | wxRIGHT | wxBOTTOM, BORDER_SIZE * 2);
 
     blendSizer->Add(makeSectionLabel(blendPanel, SFTr("launcher.autoGenerateAllowlist.label", "Auto-Generate Allowlist")), 0,
         wxLEFT | wxRIGHT | wxTOP, BORDER_SIZE);
@@ -620,22 +574,16 @@ LauncherWindow::LauncherWindow(const SFParams& initParams, filesystem::path exeP
     auto* blendKeywordColumnSizer = new wxBoxSizer(wxVERTICAL);
 
     blendMeshColumnSizer->Add(makeSectionLabel(blendPanel, SFTr("launcher.blendMeshBlacklist.label", "Blend Mesh Blacklist")), 0, wxTOP, BORDER_SIZE);
-    auto* blendMeshHelpText = new wxStaticText(blendPanel, wxID_ANY,
-        SFTr("launcher.blendMeshBlacklist.help",
+    attachHelp(SFTr("launcher.blendMeshBlacklist.help",
             "Meshes matching a rule here are never patched by the blend pass (ice, roads, trees, ...). Wildcards (*) "
             "allowed. Right click to add/remove rows."));
-    blendMeshHelpText->Wrap(HELP_WRAP_BLEND);
-    blendMeshColumnSizer->Add(blendMeshHelpText, 0, wxTOP, BORDER_SIZE);
     m_blendMeshBlacklistCtrl = makeListCtrl(blendPanel, SFTr("launcher.meshBlacklist.column", "Rule"), initParams.blendMeshBlacklist);
     blendMeshColumnSizer->Add(m_blendMeshBlacklistCtrl, 1, wxEXPAND | wxTOP, BORDER_SIZE);
 
     blendKeywordColumnSizer->Add(makeSectionLabel(blendPanel, SFTr("launcher.blendEditorIdKeywords.label", "Blend EditorID Blacklist Keywords")), 0, wxTOP, BORDER_SIZE);
-    auto* blendKeywordHelpText = new wxStaticText(blendPanel, wxID_ANY,
-        SFTr("launcher.blendEditorIdKeywords.help",
+    attachHelp(SFTr("launcher.blendEditorIdKeywords.help",
             "Records whose EditorID contains one of these words (case-insensitive) are never touched by the blend "
             "pass. Right click to add/remove rows."));
-    blendKeywordHelpText->Wrap(HELP_WRAP_BLEND);
-    blendKeywordColumnSizer->Add(blendKeywordHelpText, 0, wxTOP, BORDER_SIZE);
     m_blendEditorIdKeywordsCtrl = makeListCtrl(blendPanel, SFTr("launcher.editorIdKeywords.column", "Keyword"),
         initParams.blendEditorIdBlacklistKeywords);
     blendKeywordColumnSizer->Add(m_blendEditorIdKeywordsCtrl, 1, wxEXPAND | wxTOP, BORDER_SIZE);
@@ -644,16 +592,9 @@ LauncherWindow::LauncherWindow(const SFParams& initParams, filesystem::path exeP
     blendListsRowSizer->Add(blendKeywordColumnSizer, 1, wxEXPAND | wxLEFT | wxRIGHT, BORDER_SIZE);
     blendSizer->Add(blendListsRowSizer, 1, wxEXPAND | wxBOTTOM, BORDER_SIZE);
 
-    blendPanel->SetSizer(blendSizer);
-    blendPanel->FitInside();
-    forwardChoiceWheelToScrollPanel(blendPanel, blendPanel);
-    blendPanel->SetMinSize(wxSize(-1, 200));
-    notebook->AddPage(blendPanel, SFTr("launcher.tab.blend", "Blend"));
-    notebook->AddPage(snowPanel, SFTr("launcher.tab.snow", "Snow"));
 
     // "Options" tab - app-wide preferences (language, theme) rather than per-run settings, same
     // split AutoBlend uses.
-    auto* optionsPanel = new wxPanel(notebook);
     auto* optionsSizer = new wxBoxSizer(wxVERTICAL);
 
     // Language selector - changing it immediately relaunches the window (see onLanguageChanged)
@@ -698,21 +639,35 @@ LauncherWindow::LauncherWindow(const SFParams& initParams, filesystem::path exeP
     optionsSizer->Add(m_themeChoice, 0, wxEXPAND | wxALL, BORDER_SIZE);
 
     optionsPanel->SetSizer(optionsSizer);
-    notebook->AddPage(optionsPanel, SFTr("launcher.tab.options", "Options"));
 
-    // Developer aid: LANDSCAPEFIXER_TAB=<n> opens the launcher on that tab (used to take screenshots of
-    // every tab without sending any input to the window).
-    char* startTab = nullptr;
-    size_t startTabLength = 0;
-    if (_dupenv_s(&startTab, &startTabLength, "LANDSCAPEFIXER_TAB") == 0 && startTab != nullptr) {
-        const int tab = atoi(startTab);
-        if (tab >= 0 && tab < static_cast<int>(notebook->GetPageCount())) {
-            notebook->SetSelection(static_cast<size_t>(tab));
-        }
-        free(startTab);
+    for (const auto& panelAndSizer : { std::pair<wxPanel*, wxBoxSizer*> { setupPanel, setupSizer },
+             std::pair<wxPanel*, wxBoxSizer*> { landscapePanel, landscapeSizer },
+             std::pair<wxPanel*, wxBoxSizer*> { blendPanel, blendSizer },
+             std::pair<wxPanel*, wxBoxSizer*> { snowPanel, snowSizer } }) {
+        panelAndSizer.first->SetSizer(panelAndSizer.second);
     }
 
-    mainSizer->Add(notebook, 1, wxEXPAND | wxALL, BORDER_SIZE);
+    for (auto* card : { setupCard, landscapeCard, blendCard, snowCard, optionsCard }) {
+        pageSizer->Add(card, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 12);
+    }
+    pageSizer->AddSpacer(12);
+    pageScroll->SetSizer(pageSizer);
+    pageScroll->FitInside();
+    forwardChoiceWheelToScrollPanel(pageScroll, pageScroll);
+
+    // Developer aid: LANDSCAPEFIXER_TAB set to anything opens every card (used to take screenshots of the
+    // whole launcher without sending any input to the window).
+    char* expandAll = nullptr;
+    size_t expandAllLength = 0;
+    if (_dupenv_s(&expandAll, &expandAllLength, "LANDSCAPEFIXER_TAB") == 0 && expandAll != nullptr) {
+        for (auto* card : { landscapeCard, blendCard, snowCard, optionsCard }) {
+            card->setExpanded(true);
+        }
+        SetSize(wxSize(780, 2400));
+        free(expandAll);
+    }
+
+    mainSizer->Add(pageScroll, 1, wxEXPAND | wxTOP, 8);
 
     Bind(wxEVT_SIZE, [this](wxSizeEvent& event) -> void {
         updateListColumnWidths();
@@ -1002,6 +957,8 @@ void LauncherWindow::applyLoadedParams(const SFParams& params)
 
     m_enableBlendCheckbox->SetValue(params.enableBlend);
     m_enableSnowCheckbox->SetValue(params.enableSnow);
+    m_blendCard->syncFromToggle();
+    m_snowCard->syncFromToggle();
     m_restrictToLandscapeCheckbox->SetValue(params.restrictToLandscapeFolders);
     fillListCtrl(m_meshAddListCtrl, params.meshAddList);
     fillListCtrl(m_blendMeshBlacklistCtrl, params.blendMeshBlacklist);

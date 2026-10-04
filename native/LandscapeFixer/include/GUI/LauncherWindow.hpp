@@ -3,6 +3,7 @@
 #include "SFConfig.hpp"
 #include "SFLocale.hpp"
 #include "GUI/components/PGModifiableListCtrl.hpp"
+#include "GUI/components/SectionCard.hpp"
 
 #include <wx/wx.h>
 
@@ -63,6 +64,8 @@ private:
     wxDialog* m_autoGenerateAllowlistDialog = nullptr;
     wxCheckBox* m_generatePbrSlotsCheckbox = nullptr;
     wxButton* m_okButton = nullptr;
+    SectionCard* m_blendCard = nullptr;
+    SectionCard* m_snowCard = nullptr;
 
     void onLanguageChanged(wxCommandEvent&);
     void onThemeChanged(wxCommandEvent&);

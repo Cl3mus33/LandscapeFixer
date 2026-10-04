@@ -165,5 +165,27 @@
       "message": "Generation complete. Don't forget to enable Landscape Fixer's output plugin in your mod manager's plugin list if it isn't already active.",
       "title": "Landscape Fixer"
     }
+  },
+  "card": {
+    "setup": {
+      "title": "Setup",
+      "description": "Game, mod manager and output folder"
+    },
+    "landscape": {
+      "title": "Landscape",
+      "description": "Which meshes are touched, and the vertex colors"
+    },
+    "blend": {
+      "title": "Blend",
+      "description": "Alpha test to blend, derived TextureSets, PBR"
+    },
+    "snow": {
+      "title": "Snow",
+      "description": "Snow record fixes: collision, decals, ice"
+    },
+    "options": {
+      "title": "Preferences",
+      "description": "Language and theme"
+    }
   }
 }

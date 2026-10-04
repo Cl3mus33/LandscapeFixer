@@ -165,5 +165,27 @@
       "message": "Génération terminée. N'oubliez pas d'activer le plugin de sortie de Landscape Fixer dans la liste des plugins de votre gestionnaire de mods s'il ne l'est pas déjà.",
       "title": "Landscape Fixer"
     }
+  },
+  "card": {
+    "setup": {
+      "title": "Réglages",
+      "description": "Jeu, gestionnaire de mods et dossier de sortie"
+    },
+    "landscape": {
+      "title": "Landscape",
+      "description": "Quels meshes sont touchés, et les vertex colors"
+    },
+    "blend": {
+      "title": "Blend",
+      "description": "Alpha test vers blend, TextureSets dérivés, PBR"
+    },
+    "snow": {
+      "title": "Neige",
+      "description": "Correctifs des records de neige : collision, decals, glace"
+    },
+    "options": {
+      "title": "Préférences",
+      "description": "Langue et thème"
+    }
   }
 }
