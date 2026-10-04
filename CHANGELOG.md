@@ -17,12 +17,6 @@ The history of the two tools this one replaces lives in their own repositories
   allowlist, blacklists).
 
 ### Fixed
-- **Low-resolution vanilla textures in the blend areas (rock and mountain slabs) with a PBR pack installed.** The PBR
-  sibling of a landscape texture - and with it the PBR blend texture and the PBRNifPatcher / PBRTextureSets json PG
-  Patcher needs to convert the blend identity - was only looked for when "Generate PBR slots" was ticked (off by
-  default). Without it the only blend texture generated was a copy of the vanilla-path file (1024-2048 px) that PG
-  Patcher then left as it was. The PBR sibling is now always looked for (Skyrim SE), the option is gone, and an
-  existing settings file that still has it set to false is read without error. Reported against AutoBlend 1.2.12.
 - **A straight seam along a cell border (one side lighter) when "Clear on all terrain" was on.** Since Snow
   Fixer 1.2.11 a terrain cell was skipped as "deliberately repainted by a mod" as soon as its vertex
   colors differed from vanilla by a single value - but a mod that merely re-saves a cell (a grass fix, a

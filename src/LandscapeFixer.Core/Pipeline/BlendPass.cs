@@ -107,7 +107,7 @@ public sealed class BlendPass
         }
 
         var folderDetector = new LandscapeFolderDetector(
-            _settings.LandscapeFolderRules, _ctx.FileProbe, textureGenerator, effectiveAllowlist, _settings.GameType != GameType.SkyrimLE);
+            _settings.LandscapeFolderRules, _ctx.FileProbe, textureGenerator, effectiveAllowlist, _settings.GeneratePbrSlots);
         var blacklist = new BlacklistEvaluator(_settings.BlendMeshBlacklist, _settings.BlendEditorIdBlacklistKeywords);
 
         // Runs before any mesh/record scanning, as its own explicit phase: the allowlist is a

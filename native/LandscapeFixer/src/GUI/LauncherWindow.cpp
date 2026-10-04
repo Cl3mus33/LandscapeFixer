@@ -83,7 +83,7 @@ void fitListColumn(PGModifiableListCtrl* ctrl)
 
 // A wxChoice under the mouse cursor swallows the mouse wheel and changes its own selection instead of
 // letting the scrolled General tab scroll - so scrolling past Game Type silently flipped it to Legendary
-// Edition, reported directly on Nexus. Every
+// Edition (which then greyed out and unchecked "Generate PBR slots"), reported directly on Nexus. Every
 // choice inside the scrolled panel hands the wheel to the panel instead; changing a value still works by
 // clicking the dropdown.
 static void forwardChoiceWheelToScrollPanel(wxWindow* root, wxScrolledWindow* scrollPanel)
@@ -227,6 +227,7 @@ LauncherWindow::LauncherWindow(const SFParams& initParams, filesystem::path exeP
     gameTypeChoices.Add(SFTr("launcher.gameType.le", "Skyrim Legendary Edition"));
     m_gameTypeChoice = new wxChoice(setupPanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, gameTypeChoices);
     m_gameTypeChoice->SetSelection(initParams.gameType == SFGameType::SkyrimLE ? 1 : 0);
+    m_gameTypeChoice->Bind(wxEVT_CHOICE, &LauncherWindow::onGameTypeChanged, this);
     setupSizer->Add(m_gameTypeChoice, 0, wxEXPAND | wxALL, BORDER_SIZE);
 
     // Output location
@@ -557,7 +558,7 @@ LauncherWindow::LauncherWindow(const SFParams& initParams, filesystem::path exeP
     notebook->AddPage(landscapePanel, SFTr("launcher.tab.landscape", "Landscape"));
 
     // "Blend" tab - options of the blend pass (the former AutoBlend): which textures may get a
-    // synthesized statics sibling, and what the pass leaves alone.
+    // synthesized statics sibling, whether PBR slots are generated, and what the pass leaves alone.
     auto* blendPanel = new wxScrolledWindow(notebook);
     blendPanel->SetScrollRate(0, 30);
     auto* blendSizer = new wxBoxSizer(wxVERTICAL);
@@ -573,6 +574,11 @@ LauncherWindow::LauncherWindow(const SFParams& initParams, filesystem::path exeP
     m_enableBlendCheckbox = new wxCheckBox(blendPanel, wxID_ANY, SFTr("launcher.passes.blend", "Run the Blend pass"));
     m_enableBlendCheckbox->SetValue(initParams.enableBlend);
     blendSizer->Add(m_enableBlendCheckbox, 0, wxLEFT | wxRIGHT | wxBOTTOM, BORDER_SIZE * 2);
+
+    m_generatePbrSlotsCheckbox = new wxCheckBox(blendPanel, wxID_ANY,
+        SFTr("launcher.generatePbrSlots.label", "Generate PBR slots"));
+    m_generatePbrSlotsCheckbox->SetValue(initParams.generatePbrSlots);
+    blendSizer->Add(m_generatePbrSlotsCheckbox, 0, wxALL, BORDER_SIZE * 2);
 
     blendSizer->Add(makeSectionLabel(blendPanel, SFTr("launcher.autoGenerateAllowlist.label", "Auto-Generate Allowlist")), 0,
         wxLEFT | wxRIGHT | wxTOP, BORDER_SIZE);
@@ -742,6 +748,7 @@ LauncherWindow::LauncherWindow(const SFParams& initParams, filesystem::path exeP
     // each tab's own scrollbar absorb whatever doesn't fit is what actually keeps this working
     // on smaller screens instead of merely delaying the same problem.
     SetSizer(mainSizer);
+    updateGameTypeFieldState();
     updateListColumnWidths();
 }
 
@@ -820,6 +827,7 @@ void LauncherWindow::getParams(SFParams& outParams) const
     readListCtrl(m_meshAddListCtrl, outParams.meshAddList);
     readListCtrl(m_blendMeshBlacklistCtrl, outParams.blendMeshBlacklist);
     readListCtrl(m_blendEditorIdKeywordsCtrl, outParams.blendEditorIdBlacklistKeywords);
+    outParams.generatePbrSlots = m_generatePbrSlotsCheckbox->GetValue();
     readListCtrl(m_autoGenerateAllowlistCtrl, outParams.autoGenerateAllowlist);
 }
 
@@ -992,7 +1000,9 @@ void LauncherWindow::applyLoadedParams(const SFParams& params)
     fillListCtrl(m_meshAddListCtrl, params.meshAddList);
     fillListCtrl(m_blendMeshBlacklistCtrl, params.blendMeshBlacklist);
     fillListCtrl(m_blendEditorIdKeywordsCtrl, params.blendEditorIdBlacklistKeywords);
+    m_generatePbrSlotsCheckbox->SetValue(params.generatePbrSlots);
     fillListCtrl(m_autoGenerateAllowlistCtrl, params.autoGenerateAllowlist);
+    updateGameTypeFieldState();
 
     updateListColumnWidths();
 }
@@ -1050,6 +1060,19 @@ void LauncherWindow::updateListColumnWidths()
     fitListColumn(m_blendMeshBlacklistCtrl);
     fitListColumn(m_blendEditorIdKeywordsCtrl);
     fitListColumn(m_autoGenerateAllowlistCtrl);
+}
+
+void LauncherWindow::onGameTypeChanged([[maybe_unused]] wxCommandEvent& event) { updateGameTypeFieldState(); }
+
+// PBR slots rely on TruePBR (Community Shaders), which only exists on Skyrim SE - on Legendary Edition
+// the option is unchecked and disabled instead of looking like a working option that does nothing.
+void LauncherWindow::updateGameTypeFieldState()
+{
+    const bool isLe = m_gameTypeChoice->GetSelection() == 1;
+    if (isLe) {
+        m_generatePbrSlotsCheckbox->SetValue(false);
+    }
+    m_generatePbrSlotsCheckbox->Enable(!isLe);
 }
 
 void LauncherWindow::onEditAllowlistButtonPressed([[maybe_unused]] wxCommandEvent& event)

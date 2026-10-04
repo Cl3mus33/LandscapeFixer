@@ -126,6 +126,9 @@ auto SFConfig::loadFrom(const filesystem::path& configFilePath) -> SFParams
                 params.blendEditorIdBlacklistKeywords.push_back(StringUtil::utf8toUTF16(item.get<string>()));
             }
         }
+        if (configJ.contains("GeneratePbrSlots")) {
+            params.generatePbrSlots = configJ["GeneratePbrSlots"].get<bool>();
+        }
         if (configJ.contains("AutoGenerateAllowlist")) {
             params.autoGenerateAllowlist.clear();
             for (const auto& item : configJ["AutoGenerateAllowlist"]) {
@@ -187,6 +190,8 @@ auto SFConfig::toJson(const SFParams& params) -> nlohmann::json
     for (const auto& item : params.blendEditorIdBlacklistKeywords) {
         configJ["BlendEditorIdBlacklistKeywords"].push_back(StringUtil::utf16toUTF8(item));
     }
+
+    configJ["GeneratePbrSlots"] = params.generatePbrSlots;
 
     configJ["AutoGenerateAllowlist"] = nlohmann::json::array();
     for (const auto& item : params.autoGenerateAllowlist) {

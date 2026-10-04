@@ -135,6 +135,9 @@
       "label": "Blend EditorID Blacklist Keywords",
       "help": "Records whose EditorID contains one of these words (case-insensitive) are never touched by the blend pass. Right click to add/remove rows."
     },
+    "generatePbrSlots": {
+      "label": "Generate PBR slots"
+    },
     "autoGenerateAllowlist": {
       "label": "Auto-Generate Allowlist",
       "editButton": "Edit Allowlist...",
