@@ -578,7 +578,13 @@ LauncherWindow::LauncherWindow(const SFParams& initParams, filesystem::path exeP
     m_generatePbrSlotsCheckbox = new wxCheckBox(blendPanel, wxID_ANY,
         SFTr("launcher.generatePbrSlots.label", "Generate PBR slots"));
     m_generatePbrSlotsCheckbox->SetValue(initParams.generatePbrSlots);
-    blendSizer->Add(m_generatePbrSlotsCheckbox, 0, wxALL, BORDER_SIZE * 2);
+    blendSizer->Add(m_generatePbrSlotsCheckbox, 0, wxLEFT | wxRIGHT | wxTOP, BORDER_SIZE * 2);
+
+    auto* generatePbrSlotsHelpText = new wxStaticText(blendPanel, wxID_ANY,
+        SFTr("launcher.generatePbrSlots.help",
+            "Needed when a PBR texture pack is installed: generates the PBR version of each blend texture and the json PG Patcher uses to convert it. Left off, the blend areas show the low-resolution vanilla texture."));
+    generatePbrSlotsHelpText->Wrap(500);
+    blendSizer->Add(generatePbrSlotsHelpText, 0, wxLEFT | wxRIGHT | wxBOTTOM, BORDER_SIZE * 2);
 
     blendSizer->Add(makeSectionLabel(blendPanel, SFTr("launcher.autoGenerateAllowlist.label", "Auto-Generate Allowlist")), 0,
         wxLEFT | wxRIGHT | wxTOP, BORDER_SIZE);

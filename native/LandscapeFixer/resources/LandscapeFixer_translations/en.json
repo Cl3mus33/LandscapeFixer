@@ -136,7 +136,8 @@
       "help": "Records whose EditorID contains one of these words (case-insensitive) are never touched by the blend pass. Right click to add/remove rows."
     },
     "generatePbrSlots": {
-      "label": "Generate PBR slots"
+      "label": "Generate PBR slots",
+      "help": "Needed when a PBR texture pack is installed: generates the PBR version of each blend texture and the json PG Patcher uses to convert it. Left off, the blend areas show the low-resolution vanilla texture."
     },
     "autoGenerateAllowlist": {
       "label": "Auto-Generate Allowlist",
