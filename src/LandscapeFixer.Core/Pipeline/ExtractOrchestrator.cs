@@ -122,6 +122,18 @@ public sealed class ExtractOrchestrator
             throw new DirectoryNotFoundException($"Data folder not found: {_dataFolder}");
         }
 
+        // Reported directly (Discord): a Game Location that doesn't hold the base game made every base-game
+        // plugin look "missing", and the run went on to wipe every reference to Skyrim.esm (regions,
+        // locations, ingredients, ...) from the output - a broken plugin with nothing to tell the user why.
+        // Stopping here with the real cause is far better than producing that.
+        if (!File.Exists(Path.Combine(_dataFolder, "Skyrim.esm")))
+        {
+            throw new InvalidOperationException(
+                $"Skyrim.esm was not found in '{_dataFolder}'. Game Location must point to your Skyrim install "
+                + "folder (the one that contains SkyrimSE.exe and a Data folder with Skyrim.esm and the game's "
+                + "BSA archives), not to a mod folder or a copy of the Data folder.");
+        }
+
         // Refuse to run if Output Location is - or contains - the real game Data folder. Reported
         // directly (Nexus): a user pointed Output Location at their game's own Data folder (with no
         // dedicated output folder set up), and the wipe step below deleted their entire real
@@ -733,6 +745,15 @@ public sealed class ExtractOrchestrator
     private bool IsPluginAvailable(ModKey modKey)
     {
         var fileName = modKey.FileName.String;
+
+        // The official plugins always exist for the engine; a failed lookup here can only be a detection
+        // problem, and nulling every link to the base game would wreck the output (see Run's Skyrim.esm check).
+        if (Mo2LoadOrderMaterializer.ImplicitBaseMasterFileNames(_gameRelease)
+                .Contains(fileName, StringComparer.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
         return _env.LoadOrder.ContainsKey(modKey)
             || File.Exists(Path.Combine(_dataFolder, fileName))
             || (_mo2Reader?.TryResolve(fileName, out _) ?? false);
