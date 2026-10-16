@@ -66,6 +66,19 @@ auto getExecutablePath() -> filesystem::path
     return {};
 }
 
+// The folder the exe really lives in. Launched from MO2, GetModuleFileName reports the virtual path under the
+// game's Data folder, while the process image path is the real <instance>\mods\<mod> one - which is what
+// tells which MO2 instance this copy of the tool belongs to.
+auto getRealExecutableDir(const filesystem::path& fallbackDir) -> filesystem::path
+{
+    array<wchar_t, 4096> buffer {};
+    DWORD size = static_cast<DWORD>(buffer.size());
+    if (QueryFullProcessImageNameW(GetCurrentProcess(), 0, buffer.data(), &size) != 0) {
+        return filesystem::path(buffer.data()).parent_path();
+    }
+    return fallbackDir;
+}
+
 void configureDotnetLibDirectory(const filesystem::path& exeDir)
 {
     // Removes the current working directory from the default LoadLibrary search order (Microsoft's
@@ -136,7 +149,7 @@ auto runGUI(const filesystem::path& exePath) -> int
     }
 
     // Settings are kept per MO2 instance when the tool is installed inside one (see SFConfig).
-    SFConfig::selectInstanceFor(exePath);
+    SFConfig::selectInstanceFor(getRealExecutableDir(exePath));
     auto params = SFConfig::load();
     startupLog("runGUI: settings loaded");
     if (params.outputLocation.empty()) {
