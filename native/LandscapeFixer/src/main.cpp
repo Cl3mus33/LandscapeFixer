@@ -135,6 +135,8 @@ auto runGUI(const filesystem::path& exePath) -> int
         ShowWindow(consoleWindow, SW_HIDE);
     }
 
+    // Settings are kept per MO2 instance when the tool is installed inside one (see SFConfig).
+    SFConfig::selectInstanceFor(exePath);
     auto params = SFConfig::load();
     startupLog("runGUI: settings loaded");
     if (params.outputLocation.empty()) {

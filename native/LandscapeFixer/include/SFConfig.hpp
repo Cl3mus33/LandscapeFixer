@@ -3,6 +3,7 @@
 #include <nlohmann/json_fwd.hpp>
 
 #include <filesystem>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -175,6 +176,23 @@ struct SFParams {
  */
 class SFConfig {
 public:
+    /// @brief The MO2 instance this copy of the tool is installed in (<base>/mods/LandscapeFixer), read from
+    /// MO2's own %LOCALAPPDATA%/ModOrganizer/<instance>/ModOrganizer.ini (or a portable ModOrganizer.ini).
+    struct Mo2Instance {
+        std::wstring name;
+        std::wstring path; ///< what SFParams::mo2InstancePath holds
+        std::wstring baseDirectory;
+        std::wstring gamePath;
+        std::wstring selectedProfile;
+    };
+
+    /// @brief Works out which MO2 instance exePath belongs to; when there is one, settings are kept per
+    /// instance (%APPDATA%/LandscapeFixer/instances/<name>.json) instead of one file shared by every
+    /// modlist. Call once, before load(). Not in an MO2 mods folder (Vortex, plain Data folder): no-op,
+    /// the single global settings.json keeps being used.
+    static void selectInstanceFor(const std::filesystem::path& exePath);
+    static auto detectMo2Instance(const std::filesystem::path& exePath) -> std::optional<Mo2Instance>;
+
     static auto load() -> SFParams;
     static void save(const SFParams& params);
 

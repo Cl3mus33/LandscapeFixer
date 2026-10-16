@@ -628,7 +628,7 @@ LauncherWindow::LauncherWindow(const SFParams& initParams, filesystem::path exeP
     char* expandAll = nullptr;
     size_t expandAllLength = 0;
     if (_dupenv_s(&expandAll, &expandAllLength, "LANDSCAPEFIXER_TAB") == 0 && expandAll != nullptr) {
-        for (auto* card : { landscapeCard, blendCard, snowCard }) {
+        for (auto* card : { setupCard, landscapeCard, blendCard, snowCard }) {
             card->setExpanded(true);
         }
         SetSize(wxSize(780, 2400));
