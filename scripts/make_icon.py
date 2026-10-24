@@ -1,4 +1,4 @@
-"""Draws the Landscape Fixer icon and writes native/LandscapeFixer/resources/icon.ico (+ a PNG preview).
+"""Draws the Landscape Fixer icon and writes src/LandscapeFixer.App/LandscapeFixer.ico (+ a PNG preview).
 
     python scripts/make_icon.py
 
@@ -10,7 +10,7 @@ from PIL import Image, ImageChops, ImageDraw, ImageFilter
 
 S = 1024  # drawing size; downsampled for every icon size
 root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-out_dir = os.path.join(root, 'native', 'LandscapeFixer', 'resources')
+out_dir = os.path.join(root, 'src', 'LandscapeFixer.App')
 
 
 def lerp(a, b, t):
@@ -109,7 +109,7 @@ canvas.putalpha(tile_mask)
 
 sizes = [16, 24, 32, 48, 64, 128, 256]
 images = [canvas.resize((s, s), Image.LANCZOS) for s in sizes]
-ico_path = os.path.join(out_dir, 'icon.ico')
+ico_path = os.path.join(out_dir, 'LandscapeFixer.ico')
 images[-1].save(ico_path, format='ICO', sizes=[(s, s) for s in sizes], append_images=images[:-1])
 canvas.resize((256, 256), Image.LANCZOS).save(os.path.join(root, 'scripts', 'icon-preview.png'))
 sheet = Image.new('RGBA', (16 + 24 + 32 + 48 + 64 + 6 * 12, 80), (40, 40, 40, 255))

@@ -1,5 +1,6 @@
 # Native shell build output (CMake + Ninja + vcpkg)
 native/buildRelease/
+native/buildRelease2/
 native/build/
 native/out/
 

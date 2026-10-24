@@ -8,12 +8,30 @@ The history of the two tools this one replaces lives in their own repositories
 
 ## [Unreleased]
 
+### Changed
+- **New window**, dark and flat like TreeLODGen's, in place of the wxWidgets launcher: Setup, Landscape, Blend
+  and Snow are collapsible cards (Blend and Snow unfold when ticked), the help texts are tooltips, a wireframe
+  terrain turns on the right and shows what the run changed (blend meshes, TextureSets, snow records and
+  meshes, terrain and meshes cleaned, ...) next to the messages of the run. Language is under the gear.
+  The tool is now one self-contained exe plus the texture tools - no .NET runtime folder, no native shell.
+- **Settings are kept per Mod Organizer 2 instance.** The tool finds the instance it is installed in
+  (`<instance>\mods\...`, from the real process path - the module path is the virtual one under MO2) and
+  reads/writes `%APPDATA%\LandscapeFixer\instances\<instance>.json`, with that instance's MO2 path, profile,
+  game folder and output folder. Before, one shared file carried the last modlist's paths, so a run started
+  from one modlist could read another one's profile. Outside MO2 the shared `settings.json` is used as before.
+- Generate PBR slots is switched off and explained (not just greyed) on Legendary Edition.
+
+### Fixed
+- **A run with a Game Location that doesn't hold the game** (no `Data\Skyrim.esm`) used to go on and wipe every
+  reference to Skyrim.esm from the output - regions, locations, ingredients all null (reported on Discord).
+  It now stops with a clear error, and the official plugins are never treated as missing.
+
 ### Added
 - First merged version: the blend pass (AutoBlend 1.2.12) and the snow pass (Snow Fixer 1.2.14) in one
   run, one output folder and one ESL-flagged plugin, `LandscapeFixer.esp`.
 - Landscape scope: only meshes with a `landscape` folder in their path are processed; an
   "Additional Meshes" list adds wildcard patterns for the rest.
-- Passes can be switched on and off, and the blend pass has its own tab (PBR slots, auto-generate
+- Passes can be switched on and off, and the blend pass has its own card (PBR slots, auto-generate
   allowlist, blacklists).
 
 ### Fixed

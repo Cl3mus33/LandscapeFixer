@@ -2,7 +2,8 @@
   "_language": "English",
   "common": {
     "browse": "Browse",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "ok": "OK"
   },
   "launcher": {
     "intro": "What Landscape Fixer is allowed to touch: only meshes inside a landscape folder, plus the vertex color clean-up of the terrain and of its meshes. The Blend and Snow tabs hold the options of each pass; everything is written to one plugin, and PG Patcher is left to do the PBR conversion afterwards.",
@@ -137,7 +138,8 @@
     },
     "generatePbrSlots": {
       "label": "Generate PBR slots",
-      "help": "Needed when a PBR texture pack is installed: generates the PBR version of each blend texture and the json PG Patcher uses to convert it. Left off, the blend areas show the low-resolution vanilla texture."
+      "help": "Needed when a PBR texture pack is installed: generates the PBR version of each blend texture and the json PG Patcher uses to convert it. Left off, the blend areas show the low-resolution vanilla texture.",
+      "leNote": "Not available on Legendary Edition (PBR needs Skyrim Special Edition and Community Shaders)."
     },
     "autoGenerateAllowlist": {
       "label": "Auto-Generate Allowlist",
@@ -153,8 +155,11 @@
       "intro": "Every record whose EditorID or mesh path says snow can get its own copy of the winning mesh, with the fixes below applied to the copy only - the copy is kept only when something in the mesh actually changed, otherwise the record stays untouched."
     },
     "preferences": {
-      "tooltip": "Preferences (language, theme)",
+      "tooltip": "Preferences (language)",
       "title": "Preferences"
+    },
+    "mo2Profile": {
+      "label": "MO2 Profile"
     }
   },
   "progress": {
@@ -186,6 +191,29 @@
     "snow": {
       "title": "Snow",
       "description": "Snow record fixes: collision, decals, ice"
+    }
+  },
+  "run": {
+    "generate": "Generate",
+    "generating": "Generating...",
+    "openOutput": "Open output folder",
+    "ready": "Ready.",
+    "hint": "What each run changed appears here.",
+    "running": "Running...",
+    "error": "Stopped on an error, see the messages on the right.",
+    "errorHint": "The run stopped on an error.",
+    "done": "Done in {0} s. Enable LandscapeFixer.esp in your plugin list if it isn't already.",
+    "nothingToDo": "Nothing is switched on: tick Blend or Snow, or choose a vertex color option.",
+    "quitWhileRunning": "A run is in progress. Quit anyway? The output folder may be left incomplete.",
+    "tile": {
+      "blend": "Blend meshes",
+      "textureSets": "TextureSets",
+      "snowRecords": "Snow records",
+      "snowMeshes": "Snow meshes",
+      "terrain": "Terrain cleaned",
+      "meshColors": "Meshes cleaned",
+      "shaders": "Shader fixes",
+      "failed": "Meshes failed"
     }
   }
 }

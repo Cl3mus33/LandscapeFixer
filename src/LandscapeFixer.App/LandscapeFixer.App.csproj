@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <PlatformTarget>x64</PlatformTarget>
+    <AssemblyName>LandscapeFixer</AssemblyName>
+    <RootNamespace>LandscapeFixer.App</RootNamespace>
+    <Version>0.1.0</Version>
+    <ApplicationIcon>LandscapeFixer.ico</ApplicationIcon>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <!-- .NET 9 turns on hardware shadow stacks (CET) by default; Mod Organizer 2's virtual
+         file system hooks crash a process started with them, before it reaches Main. -->
+    <CETCompat>false</CETCompat>
+    <NoWarn>$(NoWarn);WFO1000</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\LandscapeFixer.Core\LandscapeFixer.Core.csproj" />
+    <ProjectReference Include="..\LandscapeCommon\LandscapeCommon.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- The translations sit next to the exe, as before (LandscapeFixer_translations/<code>.json). -->
+    <None Include="LandscapeFixer_translations\*.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

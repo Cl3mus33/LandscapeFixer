@@ -67,9 +67,9 @@ furniture and the like are left alone unless they match a pattern of the **Addit
 - **`src/LandscapeFixer.Core`** — the orchestrator and the two passes (C#, built on
   [Mutagen](https://github.com/Mutagen-Modding/Mutagen) and
   [niflysharp](https://github.com/Aetherinox/niflysharp)).
-- **`src/LandscapeFixer.NativeExport`** — the [DNNE](https://github.com/dotnet/dnne)-exported entry
-  points the native shell calls.
-- **`native/LandscapeFixer`** — the native wxWidgets shell (CMake + vcpkg + wxWidgets).
+- **`src/LandscapeFixer.App`** — the window: a dark WinForms app with collapsible cards for Setup,
+  Landscape, Blend and Snow, a live wireframe terrain and the run's results. It finds the MO2 instance
+  it is installed in and keeps one settings file per instance.
 - **`native/LandscapeFixerTexTools`** — a small native library on top of
   [DirectXTex](https://github.com/microsoft/DirectXTex) that generates the missing textures.
 
@@ -81,26 +81,30 @@ furniture and the like are left alone unless they match a pattern of the **Addit
 3. Launch it from your mod manager's tool list.
 4. Pick your game (SE or LE), point it at your game folder (and your MO2 instance/profile if you use
    MO2), and choose an **empty, dedicated** output folder.
-5. Hit Start, then enable the generated output.
+5. Hit Generate, then enable the generated output.
 
 Changed your load order? Just run it again — it always starts fresh from what's installed. Suggested
 order: Landscape Fixer → AutoSeasons → PGPatcher → DynDOLOD (skip the ones you don't use).
 
 ## Building from source
 
-Requirements: Windows, Visual Studio 2022 (MSVC) or the standalone Build Tools, vcpkg (manifest mode),
-the .NET 9 SDK, CMake 3.31+ and Ninja.
+Requirements: Windows, the .NET 9 SDK, and - for the texture tools only - Visual Studio 2022 (MSVC) or the
+standalone Build Tools, vcpkg (manifest mode), CMake 3.31+ and Ninja.
 
 ```bash
+# once: the DirectXTex wrapper (from a Developer Command Prompt: it copies vcomp140.dll from the toolset's redist folder)
 cd native
 cmake -B buildRelease -S . -G Ninja -DCMAKE_TOOLCHAIN_FILE=<path-to-vcpkg>/scripts/buildsystems/vcpkg.cmake -DCMAKE_BUILD_TYPE=Release
 cmake --build buildRelease --config Release
-python ../scripts/package.py 0.1.0   # optional: assemble publish/LandscapeFixer-0.1.0-win-x64.zip
+
+# the app, and the zip that gets installed as a mod
+cd ..
+python scripts/package.py 0.1.0    # publish/LandscapeFixer-0.1.0-win-x64.zip
 ```
 
-The C# projects are built and published as part of this CMake build (via DNNE). The result ends up in
-`native/buildRelease/bin/`. Run the build from a Developer Command Prompt (the texture tools copy
-`vcomp140.dll` from the toolset's redist folder).
+`dotnet run --project src/LandscapeFixer.App` starts the window from source (the texture generation then
+needs `LandscapeFixerTexTools.dll` next to the built exe). `LANDSCAPEFIXER_CONFIG=<file.json>` makes the app
+use another settings file, handy to try things against scratch folders.
 
 ## Credits
 

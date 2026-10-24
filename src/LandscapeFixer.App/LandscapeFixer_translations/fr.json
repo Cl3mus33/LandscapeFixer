@@ -2,7 +2,8 @@
   "_language": "Français",
   "common": {
     "browse": "Parcourir",
-    "cancel": "Annuler"
+    "cancel": "Annuler",
+    "ok": "OK"
   },
   "launcher": {
     "intro": "Ce que Landscape Fixer a le droit de toucher : seulement les meshes situés dans un dossier landscape, plus le nettoyage des vertex colors du terrain et de ses meshes. Les onglets Blend et Snow contiennent les options de chaque passe ; tout est écrit dans un seul plugin, et la conversion PBR est laissée à PG Patcher ensuite.",
@@ -137,7 +138,8 @@
     },
     "generatePbrSlots": {
       "label": "Générer les slots PBR",
-      "help": "Nécessaire quand un pack de textures PBR est installé : génère la version PBR de chaque texture blend et le json que PG Patcher utilise pour la convertir. Décochée, les zones de blend affichent la texture vanilla basse résolution."
+      "help": "Nécessaire quand un pack de textures PBR est installé : génère la version PBR de chaque texture blend et le json que PG Patcher utilise pour la convertir. Décochée, les zones de blend affichent la texture vanilla basse résolution.",
+      "leNote": "Indisponible en Legendary Edition (le PBR demande Skyrim Special Edition et Community Shaders)."
     },
     "autoGenerateAllowlist": {
       "label": "Liste autorisée de génération automatique",
@@ -153,8 +155,11 @@
       "intro": "Chaque record dont l'EditorID ou le chemin de mesh évoque la neige peut recevoir sa propre copie du mesh gagnant, avec les correctifs ci-dessous appliqués à la copie seulement - la copie n'est gardée que si quelque chose a réellement changé dans le mesh, sinon le record reste intact."
     },
     "preferences": {
-      "tooltip": "Préférences (langue, thème)",
+      "tooltip": "Préférences (langue)",
       "title": "Préférences"
+    },
+    "mo2Profile": {
+      "label": "Profil MO2"
     }
   },
   "progress": {
@@ -186,6 +191,29 @@
     "snow": {
       "title": "Neige",
       "description": "Correctifs des records de neige : collision, decals, glace"
+    }
+  },
+  "run": {
+    "generate": "Générer",
+    "generating": "Génération...",
+    "openOutput": "Ouvrir le dossier de sortie",
+    "ready": "Prêt.",
+    "hint": "Ce que chaque exécution a modifié apparaît ici.",
+    "running": "En cours...",
+    "error": "Arrêt sur une erreur, voir les messages à droite.",
+    "errorHint": "L'exécution s'est arrêtée sur une erreur.",
+    "done": "Terminé en {0} s. Activez LandscapeFixer.esp dans votre liste de plugins s'il ne l'est pas déjà.",
+    "nothingToDo": "Rien n'est activé : cochez Blend ou Snow, ou choisissez une option de vertex colors.",
+    "quitWhileRunning": "Une exécution est en cours. Quitter quand même ? Le dossier de sortie peut rester incomplet.",
+    "tile": {
+      "blend": "Meshes blend",
+      "textureSets": "TextureSets",
+      "snowRecords": "Records neige",
+      "snowMeshes": "Meshes neige",
+      "terrain": "Terrain nettoyé",
+      "meshColors": "Meshes nettoyés",
+      "shaders": "Correctifs shader",
+      "failed": "Meshes échoués"
     }
   }
 }

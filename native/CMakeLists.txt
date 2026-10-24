@@ -40,9 +40,9 @@ project(${PROJECT_NAME} VERSION 0.1.0)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 #
-# Submodules
+# The only native piece left: the DirectXTex wrapper the texture generation calls. The window itself is a
+# managed WinForms app (src/LandscapeFixer.App).
 #
-add_subdirectory(LandscapeFixer)
 add_subdirectory(LandscapeFixerTexTools)
 
 #
