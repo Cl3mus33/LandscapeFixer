@@ -68,7 +68,7 @@ furniture and the like are left alone unless they match a pattern of the **Addit
   [Mutagen](https://github.com/Mutagen-Modding/Mutagen) and
   [niflysharp](https://github.com/Aetherinox/niflysharp)).
 - **`src/LandscapeFixer.App`** — the window: a dark WinForms app with collapsible cards for Setup,
-  Landscape, Blend and Snow, a live wireframe terrain and the run's results. It finds the MO2 instance
+  Landscape, Blend and Snow, the run's results and its messages. It finds the MO2 instance
   it is installed in and keeps one settings file per instance.
 - **`native/LandscapeFixerTexTools`** — a small native library on top of
   [DirectXTex](https://github.com/microsoft/DirectXTex) that generates the missing textures.

@@ -10,8 +10,8 @@ The history of the two tools this one replaces lives in their own repositories
 
 ### Changed
 - **New window**, dark and flat like TreeLODGen's, in place of the wxWidgets launcher: Setup, Landscape, Blend
-  and Snow are collapsible cards (Blend and Snow unfold when ticked), the help texts are tooltips, a wireframe
-  terrain turns on the right and shows what the run changed (blend meshes, TextureSets, snow records and
+  and Snow are collapsible cards (Blend and Snow unfold when ticked), the help texts are tooltips, the panel
+  on the right shows what the run changed (blend meshes, TextureSets, snow records and
   meshes, terrain and meshes cleaned, ...) next to the messages of the run. Language is under the gear.
   The tool is now one self-contained exe plus the texture tools - no .NET runtime folder, no native shell.
 - **Settings are kept per Mod Organizer 2 instance.** The tool finds the instance it is installed in

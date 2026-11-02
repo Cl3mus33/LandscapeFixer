@@ -9,7 +9,7 @@ using LandscapeFixer.Core.Pipeline;
 namespace LandscapeFixer.App;
 
 // The tool's window: setup, what to touch, and one button. The settings sit in four collapsible cards on the
-// left (Blend and Snow unfold when ticked); the right side shows a wireframe terrain, what the run changed and
+// left (Blend and Snow unfold when ticked); the right side shows what the run changed and
 // the messages of the run.
 sealed class MainForm : Form
 {
@@ -102,7 +102,7 @@ sealed class MainForm : Form
         _status.Text = Loc.T("run.ready", "Ready.");
         Place(_status, 24, 726);
 
-        Place(_stats, 684, 24, 352, 330);
+        Place(_stats, 684, 24, 352, 170);
         _stats.Font = Font;
         _stats.Show(Array.Empty<StatsPanel.Tile>(), Loc.T("run.hint", "What each run changed appears here."));
 
@@ -114,7 +114,7 @@ sealed class MainForm : Form
         _log.ForeColor = Theme.Dim;
         _log.Font = Dpi.Font("Consolas", 9f);
         _log.WordWrap = true;
-        Place(_log, 684, 366, 352, 370);
+        Place(_log, 684, 206, 352, 530);
         Win.DarkScroll(_log);
 
         Populate();
@@ -559,7 +559,6 @@ sealed class MainForm : Form
     void SetBusy(bool busy)
     {
         _busy = busy;
-        _stats.Busy = busy;
         _cards.Enabled = !busy;
         _generate.Enabled = !busy;
         _generate.Text = busy ? T("run.generating", "Generating...") : T("run.generate", "Generate");
