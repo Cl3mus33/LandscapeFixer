@@ -1,6 +1,6 @@
 """Assemble publish/LandscapeFixer-<version>-win-x64 (+ .zip).
 
-    python scripts/package.py 0.1.0
+    python scripts/package.py 2.0.0
 
 Needs the texture tools built once (native/buildRelease, see README). The window is published as a
 self-contained single-file exe (no .NET install needed), next to the DirectXTex wrapper, its OpenMP runtime

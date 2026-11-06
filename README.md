@@ -99,7 +99,7 @@ cmake --build buildRelease --config Release
 
 # the app, and the zip that gets installed as a mod
 cd ..
-python scripts/package.py 1.0.0    # publish/LandscapeFixer-1.0.0-win-x64.zip
+python scripts/package.py 2.0.0    # publish/LandscapeFixer-2.0.0-win-x64.zip
 ```
 
 `dotnet run --project src/LandscapeFixer.App` starts the window from source (the texture generation then
