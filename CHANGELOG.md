@@ -6,7 +6,7 @@ All notable changes to this project are documented here. Format loosely follows
 The history of the two tools this one replaces lives in their own repositories
 (Snow Fixer up to 1.2.14, AutoBlend up to 1.2.12).
 
-## [Unreleased]
+## [1.0.0] - 2026-11-06
 
 ### Changed
 - **New window**, dark and flat like TreeLODGen's, in place of the wxWidgets launcher: Setup, Landscape, Blend
