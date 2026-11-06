@@ -109,7 +109,7 @@ use another settings file, handy to try things against scratch folders.
 ## Credits
 
 - Lineage: Snow Fixer and [AutoBlend](https://github.com/Cl3mus33/AutoBlend), the latter adapted from
-  [AutoSeasons](https://github.com/Kesta-Dev/AutoSeasons), which is built on
+  [AutoSeasons](https://github.com/Cl3mus33/AutoSeasons), which is built on
   [PGPatcher](https://github.com/hakasapl/PGPatcher) by hakasapl.
 - [nifly](https://github.com/ousnius/nifly) by ousnius, and its C# binding
   [niflysharp](https://github.com/Aetherinox/niflysharp), for NIF file handling.
