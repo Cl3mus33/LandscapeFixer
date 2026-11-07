@@ -37,6 +37,58 @@ public sealed class Mo2LoadOrderMaterializer
             ? ImplicitBaseMasterFileNamesCommon.Append("_ResourcePack.esl")
             : ImplicitBaseMasterFileNamesCommon;
 
+    /// <summary>
+    /// The Creation Club plugins the game loads from Skyrim.ccc (next to the game's exe, one level above
+    /// Data) - they are NOT in plugins.txt, yet the game loads them right after the base masters, before every
+    /// plugin of plugins.txt. Leaving them out hides what they change (e.g. Myrwatch's terrain, a farm's, the
+    /// Hearthfire-like homesteads' ...), and a record this tool then copies from the plugins it does see is
+    /// loaded AFTER the Creation Club plugin and silently reverts its edit. Only the files that really exist in
+    /// the Data folder are returned, in Skyrim.ccc's order. SE only (Skyrim.ccc doesn't exist on LE).
+    /// </summary>
+    public static IReadOnlyList<string> CreationClubFileNames(GameRelease gameRelease, string vanillaDataFolder)
+    {
+        var result = new List<string>();
+        if (gameRelease != GameRelease.SkyrimSE)
+        {
+            return result;
+        }
+
+        try
+        {
+            var cccPath = Path.Combine(Path.GetFullPath(Path.Combine(vanillaDataFolder, "..")), "Skyrim.ccc");
+            if (!File.Exists(cccPath))
+            {
+                return result;
+            }
+
+            // Skyrim.ccc itself lists _ResourcePack.esl, which is already one of the implicit base masters
+            var seen = new HashSet<string>(ImplicitBaseMasterFileNames(gameRelease), StringComparer.OrdinalIgnoreCase);
+            foreach (var rawLine in File.ReadAllLines(cccPath))
+            {
+                var name = rawLine.Trim();
+                if (name.Length == 0 || name.StartsWith('#') || !seen.Add(name))
+                {
+                    continue;
+                }
+
+                var ext = Path.GetExtension(name);
+                var isPlugin = ext.Equals(".esm", StringComparison.OrdinalIgnoreCase)
+                    || ext.Equals(".esp", StringComparison.OrdinalIgnoreCase)
+                    || ext.Equals(".esl", StringComparison.OrdinalIgnoreCase);
+                if (isPlugin && File.Exists(Path.Combine(vanillaDataFolder, name)))
+                {
+                    result.Add(name);
+                }
+            }
+        }
+        catch (IOException)
+        {
+            // an unreadable Skyrim.ccc just means no Creation Club plugins are added
+        }
+
+        return result;
+    }
+
     public sealed class MaterializedLoadOrder : IDisposable
     {
         public string DataFolder { get; }
@@ -72,6 +124,7 @@ public sealed class Mo2LoadOrderMaterializer
         var alreadyListed = new HashSet<string>(activePlugins, StringComparer.OrdinalIgnoreCase);
         var orderedPluginNames = ImplicitBaseMasterFileNames(gameRelease)
             .Where(name => !alreadyListed.Contains(name))
+            .Concat(CreationClubFileNames(gameRelease, vanillaDataFolder).Where(name => !alreadyListed.Contains(name)))
             .Concat(activePlugins)
             .ToList();
 

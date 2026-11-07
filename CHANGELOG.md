@@ -8,6 +8,14 @@ The history of the two tools this one replaces lives in their own repositories
 
 ## [Unreleased]
 
+### Fixed
+- **Creation Club plugins are now part of the load order the tool works on.** They are loaded by the game from
+  `Skyrim.ccc`, not `plugins.txt`, so the tool didn't see them at all: for every terrain cell it copied the
+  record of the plugins it knew, and since `LandscapeFixer.esp` loads after the Creation Club plugins, that
+  copy silently reverted what they changed. On the test load order 17 cells were affected - Myrwatch (its well
+  and its platform ended up floating above the ground), Be a Farmer, Hearthstead, Zombies, Hall. With the
+  Creation Club plugins in, 0 cells revert a Creation Club terrain edit (7505 terrain records processed).
+
 ### Changed
 - The "Only process meshes inside a landscape folder" switch is gone: the tool only ever touches meshes in a
   landscape folder (plus the ones matching the **Additional Meshes** list), and there is no way to lift that

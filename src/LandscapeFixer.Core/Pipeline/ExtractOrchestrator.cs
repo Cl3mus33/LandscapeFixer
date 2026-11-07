@@ -272,8 +272,10 @@ public sealed class ExtractOrchestrator
                     .Select(l => l.ModKey.FileName.String)
                     .ToList();
                 var alreadyListed = new HashSet<string>(activePluginNames, StringComparer.OrdinalIgnoreCase);
+                // The Creation Club plugins (Skyrim.ccc) follow the base masters too, ahead of plugins.txt's own.
                 activeLoadOrder = Mo2LoadOrderMaterializer.ImplicitBaseMasterFileNames(gameRelease)
                     .Where(name => !alreadyListed.Contains(name))
+                    .Concat(Mo2LoadOrderMaterializer.CreationClubFileNames(gameRelease, _dataFolder).Where(name => !alreadyListed.Contains(name)))
                     .Concat(activePluginNames)
                     .Select(name => ModKey.FromNameAndExtension(name))
                     .ToArray();
