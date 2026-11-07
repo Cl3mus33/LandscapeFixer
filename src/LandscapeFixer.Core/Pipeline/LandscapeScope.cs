@@ -10,22 +10,15 @@ namespace LandscapeFixer.Core.Pipeline;
 /// </summary>
 public sealed class LandscapeScope
 {
-    private readonly bool _restrict;
     private readonly IReadOnlyList<string> _addList;
 
     public LandscapeScope(ExtractSettings settings)
     {
-        _restrict = settings.RestrictToLandscapeFolders;
         _addList = settings.MeshAddList;
     }
 
     public bool IsInScope(string meshRelativePath)
     {
-        if (!_restrict)
-        {
-            return true;
-        }
-
         if (HasLandscapeFolderSegment(meshRelativePath))
         {
             return true;

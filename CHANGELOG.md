@@ -6,6 +6,13 @@ All notable changes to this project are documented here. Format loosely follows
 The history of the two tools this one replaces lives in their own repositories
 (Snow Fixer up to 1.2.14, AutoBlend up to 1.2.12).
 
+## [Unreleased]
+
+### Changed
+- The "Only process meshes inside a landscape folder" switch is gone: the tool only ever touches meshes in a
+  landscape folder (plus the ones matching the **Additional Meshes** list), and there is no way to lift that
+  limit any more. An old settings file that still carries the switch is read without any problem.
+
 ## [2.0.0] - 2026-11-06
 
 ### Changed

@@ -115,14 +115,9 @@
       "blend": "Activer la passe Blend",
       "snow": "Activer la passe Snow"
     },
-    "scope": {
-      "label": "Périmètre landscape",
-      "restrict": "Ne traiter que les meshes situés dans un dossier landscape",
-      "help": "Tout mesh dont le chemin contient un dossier « landscape » (Meshes\\Landscape, Meshes\\DLC01\\Landscape, Meshes\\_ResourcePack\\Landscape, ...) est dans le périmètre. Les socles de terrain, feux de camp et autres meshes hors de ces dossiers sont ignorés, sauf s'ils correspondent à un motif ci-dessous."
-    },
     "meshAddList": {
       "label": "Meshes supplémentaires",
-      "help": "Meshes situés hors d'un dossier landscape à traiter quand même. Jokers (*) autorisés, p. ex. « *\\whiterun\\wrterrain\\* ». Clic droit pour ajouter/supprimer des lignes.",
+      "help": "Seuls les meshes situés dans un dossier landscape (Meshes\\Landscape, Meshes\\DLC01\\Landscape, Meshes\\_ResourcePack\\Landscape, ...) sont traités. Indiquez ici ceux situés hors de ces dossiers à traiter quand même. Jokers (*) autorisés, p. ex. « *\\whiterun\\wrterrain\\* ». Clic droit pour ajouter/supprimer des lignes.",
       "column": "Motif"
     },
     "blend": {

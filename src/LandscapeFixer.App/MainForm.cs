@@ -25,7 +25,6 @@ sealed class MainForm : Form
     Button _instanceBrowse = null!;
     Label _instanceCaption = null!, _profileCaption = null!;
     // landscape
-    CheckBox _restrict = null!;
     TextBox _addList = null!;
     RadioButton[] _landscapeColors = null!, _meshColors = null!;
     // blend
@@ -202,10 +201,7 @@ sealed class MainForm : Form
         _landscapeCard = new Card(T("card.landscape.title", "Landscape"), T("card.landscape.description", "Which meshes are touched, and the vertex colors"), false, false, false);
         var st = new Stack(_landscapeCard.Body, CardWidth, _tip);
 
-        st.Caption(T("launcher.scope.label", "Landscape Scope"), T("launcher.scope.help", "Any mesh whose path has a \"landscape\" folder (Meshes\\Landscape, Meshes\\DLC01\\Landscape, Meshes\\_ResourcePack\\Landscape, ...) is in scope. Terrain bases, campfires and other meshes outside those folders are skipped unless they match the list below."));
-        _restrict = st.Add(Widgets.Check(T("launcher.scope.restrict", "Only process meshes inside a landscape folder")), 22);
-
-        st.Caption(T("launcher.meshAddList.label", "Additional Meshes"), T("launcher.meshAddList.help", "Meshes outside a landscape folder to process anyway, one pattern per line. Wildcards (*) allowed, e.g. \"*\\whiterun\\wrterrain\\*\"."));
+        st.Caption(T("launcher.meshAddList.label", "Additional Meshes"), T("launcher.meshAddList.help", "Only meshes inside a landscape folder (Meshes\\Landscape, Meshes\\DLC01\\Landscape, Meshes\\_ResourcePack\\Landscape, ...) are processed. List here the meshes outside those folders to process anyway, one pattern per line. Wildcards (*) allowed, e.g. \"*\\whiterun\\wrterrain\\*\"."));
         _addList = st.Add(Widgets.Lines(Array.Empty<string>()), 78, CardWidth - 28);
 
         st.Caption(T("launcher.landscapeVertexColors.label", "Landscape Vertex Colors"), T("launcher.landscapeVertexColors.help", "Clears baked-in vertex color tinting on terrain (LAND) records, so they render standalone instead of carrying leftover color grading meant for a different look."));
@@ -313,7 +309,6 @@ sealed class MainForm : Form
         _output.Text = _s.OutputLocation;
         RefreshProfiles(_s.Mo2ProfileName);
 
-        _restrict.Checked = _s.RestrictToLandscapeFolders;
         Widgets.SetLines(_addList, _s.MeshAddList);
         _landscapeColors[_s.LandscapeVertexColorMode switch { LandscapeVertexColorMode.All => 1, LandscapeVertexColorMode.SnowOnly => 2, _ => 0 }].Checked = true;
         _meshColors[_s.MeshVertexColorMode switch { MeshVertexColorMode.SnowOnly => 1, MeshVertexColorMode.All => 2, _ => 0 }].Checked = true;
@@ -345,7 +340,6 @@ sealed class MainForm : Form
         _s.Mo2InstancePath = _instance.Text.Trim();
         _s.Mo2ProfileName = _profile.SelectedItem ?? "";
 
-        _s.RestrictToLandscapeFolders = _restrict.Checked;
         _s.MeshAddList = Widgets.ReadLines(_addList);
         _s.LandscapeVertexColorMode = _landscapeColors[1].Checked ? LandscapeVertexColorMode.All : _landscapeColors[2].Checked ? LandscapeVertexColorMode.SnowOnly : LandscapeVertexColorMode.None;
         _s.MeshVertexColorMode = _meshColors[2].Checked ? MeshVertexColorMode.All : _meshColors[1].Checked ? MeshVertexColorMode.SnowOnly : MeshVertexColorMode.None;

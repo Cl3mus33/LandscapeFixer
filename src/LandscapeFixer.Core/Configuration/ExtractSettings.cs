@@ -112,16 +112,12 @@ public sealed class ExtractSettings
     public List<string> EditorIdBlacklistKeywords { get; set; } = new() { "glacier", "ice", "frozen", "icicle" };
     // ---- Landscape scope (shared by the blend and the snow pass) ----
 
-    /// <summary>When true (default), only meshes living in a landscape folder of the game - any path
-    /// with a "landscape" folder segment: meshes\landscape\, meshes\dlc01\landscape\,
-    /// meshes\_resourcepack\landscape\, ... - are ever processed, by either pass. Everything else
-    /// (architecture terrain bases, campfires, furniture, ...) is left alone unless it matches
-    /// <see cref="MeshAddList"/>.</summary>
-    public bool RestrictToLandscapeFolders { get; set; } = true;
-
-    /// <summary>Wildcard path patterns (same syntax as the blacklists) of meshes OUTSIDE a landscape
-    /// folder that must be processed anyway, e.g. "*\whiterun\wrterrain\*". Only used while
-    /// <see cref="RestrictToLandscapeFolders"/> is on.</summary>
+    /// <summary>Only meshes living in a landscape folder of the game - any path with a "landscape"
+    /// folder segment: meshes\landscape\, meshes\dlc01\landscape\, meshes\_resourcepack\landscape\, ... -
+    /// are ever processed, by either pass; there is no switch to lift that limit. Everything else
+    /// (architecture terrain bases, campfires, furniture, ...) is left alone unless it matches this list.
+    /// Wildcard path patterns (same syntax as the blacklists) of meshes OUTSIDE a landscape
+    /// folder that must be processed anyway, e.g. "*\whiterun\wrterrain\*".</summary>
     public List<string> MeshAddList { get; set; } = new();
 
     // ---- Blend pass (alpha test -> alpha blend, statics/blend TextureSets) ----

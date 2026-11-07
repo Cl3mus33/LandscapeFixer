@@ -115,14 +115,9 @@
       "blend": "Run the Blend pass",
       "snow": "Run the Snow pass"
     },
-    "scope": {
-      "label": "Landscape Scope",
-      "restrict": "Only process meshes inside a landscape folder",
-      "help": "Any mesh whose path has a \"landscape\" folder (Meshes\\Landscape, Meshes\\DLC01\\Landscape, Meshes\\_ResourcePack\\Landscape, ...) is in scope. Terrain bases, campfires and other meshes outside those folders are skipped unless they match a pattern below."
-    },
     "meshAddList": {
       "label": "Additional Meshes",
-      "help": "Meshes outside a landscape folder to process anyway. Wildcards (*) allowed, e.g. \"*\\whiterun\\wrterrain\\*\". Right click to add/remove rows.",
+      "help": "Only meshes inside a landscape folder (Meshes\\Landscape, Meshes\\DLC01\\Landscape, Meshes\\_ResourcePack\\Landscape, ...) are processed. List here the meshes outside those folders to process anyway. Wildcards (*) allowed, e.g. \"*\\whiterun\\wrterrain\\*\". Right click to add/remove rows.",
       "column": "Pattern"
     },
     "blend": {
