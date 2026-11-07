@@ -6,7 +6,7 @@ All notable changes to this project are documented here. Format loosely follows
 The history of the two tools this one replaces lives in their own repositories
 (Snow Fixer up to 1.2.14, AutoBlend up to 1.2.12).
 
-## [Unreleased]
+## [2.0.1] - 2026-11-07
 
 ### Fixed
 - **Creation Club plugins are now part of the load order the tool works on.** They are loaded by the game from
