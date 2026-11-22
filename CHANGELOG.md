@@ -6,6 +6,12 @@ All notable changes to this project are documented here. Format loosely follows
 The history of the two tools this one replaces lives in their own repositories
 (Snow Fixer up to 1.2.14, AutoBlend up to 1.2.12).
 
+## [2.0.2] - 2026-11-22
+
+### Changed
+- The "Could not resolve existing TextureSet referenced by shape ..." warning is now one line in the log with a count, the plugins named by those references and the first examples, instead of one line per shape. It means a record's Alternate Texture points at a TextureSet that no plugin of the load order defines - typically a generated plugin (PGPatcher's `PG_*.esp`, an earlier Landscape Fixer output) left active while the plugin holding those TextureSets is not. The shapes are left untouched; disable the outputs of generated plugins before running (as the readme says).
+- The package folder is always called `LandscapeFixer` (the .7z has it as its root folder), with the version only in the archive name, so the path of the executable set in the mod manager survives an update. The packaging script now writes the .zip and the .7z, with the one-word `LandscapeFixer.ini` that makes Mod Organizer 2 install the archive as a mod.
+
 ## [2.0.1] - 2026-11-07
 
 ### Fixed

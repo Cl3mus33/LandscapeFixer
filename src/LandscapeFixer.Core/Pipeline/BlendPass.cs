@@ -77,6 +77,8 @@ public sealed class BlendPass
     public BlendPassResult Run()
     {
         var readerWarnings = new List<string>();
+        // Shapes whose Alternate Texture points at a TextureSet no loaded plugin defines: reported once, as a group.
+        var unresolvedTextureSets = new List<(string Shape, FormKey Record, string MissingPlugin)>();
         // Mod authors can ship their own "*_autoblend.json" allowlist entries alongside their mod
         // (e.g. a landscape pack declaring which of its own textures are safe to auto-generate a
         // statics/blend sibling for) - collected from every enabled mod, not just the user's own
@@ -330,7 +332,7 @@ public sealed class BlendPass
                 var perRecordTreatment = new Dictionary<FormKey, Dictionary<string, ShapeTreatment>>();
                 foreach (var formKey in candidateFormKeys)
                 {
-                    perRecordTreatment[formKey] = ClassifyRecord(formKey, recordKinds[formKey], alphaShapes, _ctx.Env, folderDetector, _ctx.AddDiagnostic);
+                    perRecordTreatment[formKey] = ClassifyRecord(formKey, recordKinds[formKey], alphaShapes, _ctx.Env, folderDetector, unresolvedTextureSets);
                 }
 
                 // A mod-provided *_autoblend_exceptions.json entry for this exact mesh path overrides
@@ -572,6 +574,19 @@ public sealed class BlendPass
         }
 
 
+        if (unresolvedTextureSets.Count > 0)
+        {
+            const int shown = 5;
+            var missing = unresolvedTextureSets.Select(u => u.MissingPlugin).Distinct(StringComparer.OrdinalIgnoreCase).Order(StringComparer.OrdinalIgnoreCase).ToList();
+            var examples = string.Join(", ", unresolvedTextureSets.Take(shown).Select(u => $"'{u.Shape}' on {u.Record}"));
+            _ctx.AddDiagnostic($"{unresolvedTextureSets.Count} shape(s) on {unresolvedTextureSets.Select(u => u.Record).Distinct().Count()} record(s) "
+                + $"have an Alternate Texture pointing at a TextureSet that no plugin of the load order defines (the references name: {string.Join(", ", missing)}). "
+                + "Typical cause: a generated plugin (PGPatcher's PG_*.esp, an earlier Landscape Fixer output) is still active while the plugin "
+                + "holding those TextureSets is not, or generated data pointing nowhere - disable the outputs of generated plugins before running. "
+                + $"These shapes were left untouched. First ones: {examples}"
+                + (unresolvedTextureSets.Count > shown ? ", ..." : "."));
+        }
+
         _ctx.AddDiagnostics(readerWarnings);
         return new BlendPassResult(recordsScanned, meshesPatchedInPlace, derivedTxstCache.Count, altTexAssigned);
     }
@@ -582,7 +597,7 @@ public sealed class BlendPass
         Dictionary<string, AlphaShape> alphaShapes,
         IGameEnvironment env,
         LandscapeFolderDetector folderDetector,
-        Action<string> addWarning)
+        List<(string Shape, FormKey Record, string MissingPlugin)> unresolvedTextureSets)
     {
         var result = new Dictionary<string, ShapeTreatment>(StringComparer.OrdinalIgnoreCase);
 
@@ -617,7 +632,7 @@ public sealed class BlendPass
                     // The Alternate Texture points at a FormKey that doesn't resolve in this
                     // environment (missing/masked plugin) - there is nothing correct to derive, so
                     // leave it untouched rather than guessing from the mesh's unrelated default.
-                    addWarning($"Could not resolve existing TextureSet referenced by shape '{shapeName}' on record {formKey} - left untouched.");
+                    unresolvedTextureSets.Add((shapeName, formKey, existingAltTex.NewTexture.FormKey.ModKey.FileName));
                     result[shapeName] = new ShapeTreatment(ShapeTreatmentKind.Untouched, alphaShape.ShapeIndex, null, null);
                 }
             }
